@@ -1,4 +1,5 @@
-from typing import Tuple
+from argparse import ArgumentParser
+from typing import Callable, Tuple
 
 import librosa
 import numpy as np

@@ -48,13 +48,13 @@ def cos_func(i: int, n: int) -> float:
 def get_mfccs(mel_spectogram: np.ndarray, no_of_coeffs_per_frame: int = 16) -> np.ndarray:
   log_mel_spectogram = np.log10(mel_spectogram)
   n_mels = mel_spectogram.shape[0]
-  cos_matrix = np.fromfunction(cos_func, (n_mels, no_of_coeffs_per_frame), dtype=np.float64)
+  cos_matrix = np.fromfunction(cos_func, (no_of_coeffs_per_frame, n_mels), dtype=np.float64)
   mfccs = cos_matrix @ log_mel_spectogram
   return mfccs
 
 
 def mel_cepstral_dist_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
-  aligned_mfccs_1, aligned_mfccs_2 = align_mfccs_with_dtw(mfccs_1, mfccs_2)
+  aligned_mfccs_1, aligned_mfccs_2 = align_mfccs_with_dtw(mfccs_1.T, mfccs_2.T)
   return mel_cepstral_dist(aligned_mfccs_1, aligned_mfccs_2)
 
 

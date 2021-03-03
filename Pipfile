@@ -1,0 +1,19 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+autopep8 = "*"
+pylint = "*"
+pycodestyle = "*"
+isort = "*"
+
+[packages]
+librosa = "*"
+numpy = "*"
+scipy = "*"
+fastdtw = "*"
+
+[requires]
+python_version = "3.8"

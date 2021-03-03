@@ -15,7 +15,7 @@ def _init_parser() -> ArgumentParser:
   result = ArgumentParser()
   subparsers = result.add_subparsers(help='sub-command help')
 
-  _add_parser_to(subparsers, "get_mcd_dtw_from_paths", init_mcd_parser)
+  _add_parser_to(subparsers, "print_mcd", init_mcd_parser)
   return result
 
 
@@ -33,11 +33,18 @@ def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
                       help="Path to first WAV file")
   parser.add_argument("-b", "--path_2", type=str, required=True,
                       help="Path to first WAV file")
-  parser.add_argument("-f", "--n_fft", type=int, required=False)
-  parser.add_argument("-h", "--hop_length", type=int, required=False)
-  parser.add_argument("-m", "--n_mels", type=int, required=False)
-  parser.add_argument("-c", "--no_of_coeffs_per_frame", type=int, required=False)
-  return get_mcd_dtw_from_paths
+  parser.add_argument("-f", "--n_fft", type=int, required=False, default=1024)
+  parser.add_argument("-l", "--hop_length", type=int, required=False, default=256)
+  parser.add_argument("-m", "--n_mels", type=int, required=False, default=20)
+  parser.add_argument("-c", "--no_of_coeffs_per_frame", type=int, required=False, default=16)
+  return print_mcd_dtw_from_paths
+
+
+def print_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16):
+  mcd, frames = get_mcd_dtw_from_paths(
+    path_1, path_2, n_fft, hop_length, n_mels, no_of_coeffs_per_frame)
+  print(
+    f"The mel-cepstral distance between the two WAV files is {mcd}. This was computed using {frames} frames.")
 
 
 if __name__ == "__main__":

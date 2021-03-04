@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="mel_cepstral_distance",
+    name="mcd",
     version="1.0.0",
     url="https://github.com/jasminsternkopf/mel_cepstral_distance",
     author="Jasmin Sternkopf",

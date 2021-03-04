@@ -8,6 +8,7 @@ autopep8 = "*"
 pylint = "*"
 pycodestyle = "*"
 isort = "*"
+pipenv-setup = "*"
 
 [packages]
 librosa = "*"

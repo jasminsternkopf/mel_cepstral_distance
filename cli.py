@@ -40,7 +40,7 @@ def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   return print_mcd_dtw_from_paths
 
 
-def print_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16):
+def print_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int, hop_length: int, n_mels: int, no_of_coeffs_per_frame: int):
   mcd, frames = get_mcd_dtw_from_paths(
     path_1, path_2, n_fft, hop_length, n_mels, no_of_coeffs_per_frame)
   print(

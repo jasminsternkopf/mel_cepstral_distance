@@ -1,5 +1,4 @@
-from argparse import ArgumentParser
-from typing import Callable, Tuple
+from typing import Tuple
 
 import librosa
 import numpy as np
@@ -55,6 +54,8 @@ def get_mfccs(mel_spectogram: np.ndarray, no_of_coeffs_per_frame: int = 16) -> n
 
 
 def mel_cepstral_dist_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+  if mfccs_1.shape[0] != mfccs_2.shape[0]:
+    raise Exception("The number of coefficients per frame has to be the same for both inputs.")
   aligned_mfccs_1, aligned_mfccs_2 = align_mfccs_with_dtw(mfccs_1.T, mfccs_2.T)
   return mel_cepstral_dist(aligned_mfccs_1, aligned_mfccs_2)
 

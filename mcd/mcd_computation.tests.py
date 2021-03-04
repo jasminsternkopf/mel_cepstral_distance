@@ -2,7 +2,8 @@ import unittest
 
 import numpy as np
 
-from mcd.mcd_computation import get_mcd_dtw_from_paths
+from mcd.mcd_computation import (get_mcd_dtw_from_paths, mel_cepstral_dist,
+                                 mel_cepstral_dist_dtw)
 
 
 class UnitTests(unittest.TestCase):
@@ -36,6 +37,20 @@ class UnitTests(unittest.TestCase):
     self.assertEqual(res_similar[1], 539)
     self.assertEqual(res_somewhat_similar[1], 953)
     self.assertEqual(res_unsimilar[1], 1027)
+
+  def test_shapes_do_not_fit__expect_exception(self):
+    array_1 = np.array([[1, 2, 3], [4, 5, 6]])
+    array_2 = np.array([[1, 2], [4, 5], [7, 8]])
+    array_3 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+    with self.assertRaises(Exception):
+      mel_cepstral_dist_dtw(array_1, array_2)
+
+    with self.assertRaises(Exception):
+      mel_cepstral_dist(array_1, array_3)
+
+    with self.assertRaises(Exception):
+      mel_cepstral_dist(array_2, array_3)
 
 
 if __name__ == '__main__':

@@ -28,7 +28,8 @@ def get_audio_from_path(path: str) -> Tuple[np.ndarray, int]:
 
 
 def get_spectogram(audio: np.ndarray, n_fft: int = 1024, hop_length: int = 256) -> np.ndarray:
-  stft_of_audio = librosa.stft(audio, n_fft=n_fft, hop_length=hop_length, center=False)
+  stft_of_audio = librosa.stft(audio, n_fft=n_fft, hop_length=hop_length,
+                               center=False, window='hamming')
   spectogram = np.abs(stft_of_audio) ** 2
   return spectogram
 

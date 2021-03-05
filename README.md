@@ -60,7 +60,7 @@ def get_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_leng
   ...
 def get_mcd_dtw_from_mel_spectograms(mel_spectogram_1: np.ndarray, mel_spectogram_2: np.ndarray, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
   ...
-def get_audio_from_path(path: str) -> Tuple[np.ndarray, int]:
+def get_audio_and_sampling_rate_from_path(path: str) -> Tuple[np.ndarray, int]:
   ...
 def get_spectogram(audio: np.ndarray, n_fft: int = 1024, hop_length: int = 256) -> np.ndarray:
   ...
@@ -100,7 +100,7 @@ If you want to change any of these parameters, checkout this repository as descr
 
 Usually, the number of frames of two different audios does not coincide, but this needs to be the case to compute the mel-cepstral distance. Therefore I use Dynamic Time Warping (dtw) to align the coefficient arrays for both audios (this also enhances comparability). If you want to use a different way to align the arrays, feel free to do so, you can still use this code:
 
-- turn the path of you WAV file into an audio array with `get_audio_from_path`
+- turn the path of you WAV file into an audio array and the audio's sampling rate with `get_audio_and_sampling_rate_from_path`
 - input the audio array in `get_spectogram` and receive a spectogram
 - turn the spectogram into a mel-spectogram with `get_mel_spectogram`
 - compute the mel-cepstral coefficients with `get_mfccs`, where you use the mel-spectogram as an input

@@ -7,8 +7,8 @@ from scipy.spatial.distance import euclidean
 
 
 def get_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
-  audio_1, sr_1 = get_audio_from_path(path_1)
-  audio_2, sr_2 = get_audio_from_path(path_2)
+  audio_1, sr_1 = get_audio_and_sampling_rate_from_path(path_1)
+  audio_2, sr_2 = get_audio_and_sampling_rate_from_path(path_2)
   spectogram_1 = get_spectogram(audio_1, n_fft, hop_length)
   spectogram_2 = get_spectogram(audio_2, n_fft, hop_length)
   mel_spectogram_1 = get_mel_spectogram(spectogram_1, sr_1, n_mels)
@@ -22,7 +22,7 @@ def get_mcd_dtw_from_mel_spectograms(mel_spectogram_1: np.ndarray, mel_spectogra
   return mel_cepstral_dist_dtw(mfccs_1, mfccs_2)
 
 
-def get_audio_from_path(path: str) -> Tuple[np.ndarray, int]:
+def get_audio_and_sampling_rate_from_path(path: str) -> Tuple[np.ndarray, int]:
   audio, sr = librosa.load(path, mono=True)
   return audio, sr
 

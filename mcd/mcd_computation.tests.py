@@ -30,13 +30,13 @@ class UnitTests(unittest.TestCase):
     res_unsimilar = get_mcd_dtw_from_paths(
       "examples/unsimilar_audios/original.wav", "examples/unsimilar_audios/inferred.wav")
 
-    self.assertAlmostEqual(res_similar[0], 9.48651454)
-    self.assertAlmostEqual(res_somewhat_similar[0], 10.37819387)
-    self.assertAlmostEqual(res_unsimilar[0], 14.49857858)
+    self.assertAlmostEqual(res_similar[0], 8.613918022570173)
+    self.assertAlmostEqual(res_somewhat_similar[0], 9.621031769651019)
+    self.assertAlmostEqual(res_unsimilar[0], 13.983229819153072)
 
     self.assertEqual(res_similar[1], 539)
-    self.assertEqual(res_somewhat_similar[1], 953)
-    self.assertEqual(res_unsimilar[1], 1027)
+    self.assertEqual(res_somewhat_similar[1], 952)
+    self.assertEqual(res_unsimilar[1], 1015)
 
   def test_shapes_do_not_fit__expect_exception(self):
     array_1 = np.array([[1, 2, 3], [4, 5, 6]])

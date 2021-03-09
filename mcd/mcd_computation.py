@@ -42,14 +42,15 @@ def get_mel_spectogram(spectogram: np.ndarray, sr: int = 22050, n_mels: int = 20
   return mel_spectogram
 
 
-def cos_func(i: int, n: int) -> float:
-  return np.cos((i + 1) * (n + 1 / 2) * np.pi / 20)
+def cos_func(i: int, n: int, n_mels: int) -> float:
+  return np.cos((i + 1) * (n + 1 / 2) * np.pi / n_mels)
 
 
 def get_mfccs(mel_spectogram: np.ndarray, no_of_coeffs_per_frame: int = 16) -> np.ndarray:
   log_mel_spectogram = np.log10(mel_spectogram)
   n_mels = mel_spectogram.shape[0]
-  cos_matrix = np.fromfunction(cos_func, (no_of_coeffs_per_frame, n_mels), dtype=np.float64)
+  cos_matrix = np.fromfunction(cos_func, (no_of_coeffs_per_frame, n_mels),
+                               dtype=np.float64, n_mels=n_mels)
   mfccs = cos_matrix @ log_mel_spectogram
   return mfccs
 

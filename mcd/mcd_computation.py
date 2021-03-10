@@ -23,7 +23,21 @@ def get_mcd_fill_with_zeros_from_paths(path_1: str, path_2: str, n_fft: int = 10
   spectogram_2 = get_spectogram(audio_2, n_fft, hop_length)
   mel_spectogram_1 = get_mel_spectogram(spectogram_1, sr_1, n_mels)
   mel_spectogram_2 = get_mel_spectogram(spectogram_2, sr_2, n_mels)
-  return mel_cepstral_dist_fill_with_zeros(mel_spectogram_1, mel_spectogram_2)
+  mfccs_1 = get_mfccs(mel_spectogram_1, no_of_coeffs_per_frame)
+  mfccs_2 = get_mfccs(mel_spectogram_2, no_of_coeffs_per_frame)
+  return mel_cepstral_dist_fill_with_zeros(mfccs_1, mfccs_2)
+
+
+def get_mcd_dtw_with_penalty_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> float:
+  audio_1, sr_1 = get_audio_and_sampling_rate_from_path(path_1)
+  audio_2, sr_2 = get_audio_and_sampling_rate_from_path(path_2)
+  spectogram_1 = get_spectogram(audio_1, n_fft, hop_length)
+  spectogram_2 = get_spectogram(audio_2, n_fft, hop_length)
+  mel_spectogram_1 = get_mel_spectogram(spectogram_1, sr_1, n_mels)
+  mel_spectogram_2 = get_mel_spectogram(spectogram_2, sr_2, n_mels)
+  mfccs_1 = get_mfccs(mel_spectogram_1, no_of_coeffs_per_frame)
+  mfccs_2 = get_mfccs(mel_spectogram_2, no_of_coeffs_per_frame)
+  return mcd_with_dtw_penalty(mfccs_1, mfccs_2, 1)
 
 
 def get_mcd_dtw_from_mel_spectograms(mel_spectogram_1: np.ndarray, mel_spectogram_2: np.ndarray, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
@@ -72,6 +86,14 @@ def mel_cepstral_dist_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[flo
   return mel_cepstral_dist(aligned_mfccs_1, aligned_mfccs_2)
 
 
+def mcd_with_dtw_penalty(mfccs_1: np.ndarray, mfccs_2: np.ndarray, alpha: float) -> float:
+  former_length_1 = mfccs_1.shape[1]
+  former_length_2 = mfccs_2.shape[1]
+  mcd, length_after_dtw = mel_cepstral_dist_dtw(mfccs_1, mfccs_2)
+  penalty = dtw_penalty(former_length_1, former_length_2, length_after_dtw)
+  return mcd + alpha * penalty
+
+
 def mel_cepstral_dist_fill_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
   if mfccs_1.shape[0] != mfccs_2.shape[0]:
     raise Exception("The number of coefficients per frame has to be the same for both inputs.")
@@ -113,3 +135,8 @@ def align_mfccs_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.n
   mfccs_1 = mfccs_1[path_for_input]
   mfccs_2 = mfccs_2[path_for_output]
   return mfccs_1.T, mfccs_2.T
+
+
+def dtw_penalty(former_length_1: int, former_length_2: int, length_after_dtw: int) -> float:
+  # lies between 0 and 1, the smaller the better
+  return 2 - (former_length_1 + former_length_2) / length_after_dtw

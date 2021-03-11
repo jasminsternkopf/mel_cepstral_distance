@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from mcd.mcd_computation import (get_mcd_dtw_from_paths, mel_cepstral_dist,
+from mcd.mcd_computation import (get_mcd_dtw_from_paths, mel_cepstral_dist_with_equaling_frame_number,
                                  mel_cepstral_dist_dtw)
 
 
@@ -47,10 +47,10 @@ class UnitTests(unittest.TestCase):
       mel_cepstral_dist_dtw(array_1, array_2)
 
     with self.assertRaises(Exception):
-      mel_cepstral_dist(array_1, array_3)
+      mel_cepstral_dist_with_equaling_frame_number(array_1, array_3)
 
     with self.assertRaises(Exception):
-      mel_cepstral_dist(array_2, array_3)
+      mel_cepstral_dist_with_equaling_frame_number(array_2, array_3)
 
 
 if __name__ == '__main__':

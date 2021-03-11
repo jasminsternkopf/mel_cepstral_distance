@@ -4,6 +4,7 @@ from typing import Tuple
 import librosa
 import numpy as np
 from fastdtw.fastdtw import fastdtw
+from librosa.feature.spectral import mfcc
 from scipy.spatial.distance import euclidean
 
 
@@ -21,68 +22,28 @@ class Params:
 class MCD_Result:
   mcd: float
   penalty: float
-  final_number_of_frames: int
+  final_frame_number: int
   added_frames: int
 
 
-def get_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
-  audio_1, sr_1 = get_audio_and_sampling_rate_from_path(path_1)
-  audio_2, sr_2 = get_audio_and_sampling_rate_from_path(path_2)
-  spectogram_1 = get_spectogram(audio_1, n_fft, hop_length)
-  spectogram_2 = get_spectogram(audio_2, n_fft, hop_length)
-  mel_spectogram_1 = get_mel_spectogram(spectogram_1, sr_1, n_mels)
-  mel_spectogram_2 = get_mel_spectogram(spectogram_2, sr_2, n_mels)
-  return get_mcd_dtw_from_mel_spectograms(mel_spectogram_1, mel_spectogram_2, no_of_coeffs_per_frame)
+def get_mcd_dtw_from_paths(path_1: str, path_2: str, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming',
+                           center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
+  mel_spectogram_1, sr_1 = get_mel_spectogram_from_path(
+    path_1, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
+  mel_spectogram_2, sr_2 = get_mel_spectogram_from_path(
+    path_2, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
+  if sr_1 != sr_2:
+    print("Warning: The sampling rates differ.")
+  mfccs_1 = get_mfccs(mel_spectogram_1, no_of_coeffs_per_frame=no_of_coeffs_per_frame)
+  mfccs_2 = get_mfccs(mel_spectogram_2, no_of_coeffs_per_frame=no_of_coeffs_per_frame)
 
 
-def get_mcd_fill_with_zeros_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
-  audio_1, sr_1 = get_audio_and_sampling_rate_from_path(path_1)
-  audio_2, sr_2 = get_audio_and_sampling_rate_from_path(path_2)
-  spectogram_1 = get_spectogram(audio_1, n_fft, hop_length)
-  spectogram_2 = get_spectogram(audio_2, n_fft, hop_length)
-  mel_spectogram_1 = get_mel_spectogram(spectogram_1, sr_1, n_mels)
-  mel_spectogram_2 = get_mel_spectogram(spectogram_2, sr_2, n_mels)
-  mfccs_1 = get_mfccs(mel_spectogram_1, no_of_coeffs_per_frame)
-  mfccs_2 = get_mfccs(mel_spectogram_2, no_of_coeffs_per_frame)
-  return mel_cepstral_dist_fill_with_zeros(mfccs_1, mfccs_2)
-
-
-def get_mcd_dtw_and_penalty_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> Tuple[float, float, int]:
-  audio_1, sr_1 = get_audio_and_sampling_rate_from_path(path_1)
-  audio_2, sr_2 = get_audio_and_sampling_rate_from_path(path_2)
-  spectogram_1 = get_spectogram(audio_1, n_fft, hop_length)
-  spectogram_2 = get_spectogram(audio_2, n_fft, hop_length)
-  mel_spectogram_1 = get_mel_spectogram(spectogram_1, sr_1, n_mels)
-  mel_spectogram_2 = get_mel_spectogram(spectogram_2, sr_2, n_mels)
-  mfccs_1 = get_mfccs(mel_spectogram_1, no_of_coeffs_per_frame)
-  mfccs_2 = get_mfccs(mel_spectogram_2, no_of_coeffs_per_frame)
-  return mcd_with_dtw_and_penalty(mfccs_1, mfccs_2)
-
-
-def get_mcd_dtw_from_mel_spectograms(mel_spectogram_1: np.ndarray, mel_spectogram_2: np.ndarray, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
-  mfccs_1 = get_mfccs(mel_spectogram_1, no_of_coeffs_per_frame)
-  mfccs_2 = get_mfccs(mel_spectogram_2, no_of_coeffs_per_frame)
-  return mel_cepstral_dist_dtw(mfccs_1, mfccs_2)
-
-
-def get_audio_and_sampling_rate_from_path(path: str) -> Tuple[np.ndarray, int]:
+def get_mel_spectogram_from_path(path: str, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming',
+                                 center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64) -> np.ndarray:
   audio, sr = librosa.load(path, mono=True)
-  return audio, sr
-
-
-def get_spectogram(audio: np.ndarray, n_fft: int = 1024, hop_length: int = 256) -> np.ndarray:
-  stft_of_audio = librosa.stft(audio, n_fft=n_fft, hop_length=hop_length,
-                               center=False, window='hamming')
-  spectogram = np.abs(stft_of_audio) ** 2
-  return spectogram
-
-
-def get_mel_spectogram(spectogram: np.ndarray, sr: int = 22050, n_mels: int = 20) -> np.ndarray:
-  n_fft = (spectogram.shape[0] - 1) * 2
-  mel_filter_bank = librosa.filters.mel(
-    sr=sr, n_fft=n_fft, n_mels=n_mels, norm=None, dtype=np.float64, htk=True)
-  mel_spectogram = mel_filter_bank @ spectogram
-  return mel_spectogram
+  mel_spectogram = librosa.feature.melspectrogram(audio, sr, hop_length=hop_length, n_fft=n_fft, window=window,
+                                                  center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
+  return mel_spectogram, sr
 
 
 def cos_func(i: int, n: int, n_mels: int) -> float:
@@ -98,53 +59,27 @@ def get_mfccs(mel_spectogram: np.ndarray, no_of_coeffs_per_frame: int = 16) -> n
   return mfccs
 
 
-def mel_cepstral_dist_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+def mcd_with_dtw_and_penalty(mfccs_1: np.ndarray, mfccs_2: np.ndarray, use_dtw=True) -> Tuple[float, float, int]:
+  former_frame_number_1 = mfccs_1.shape[1]
+  former_frame_number_2 = mfccs_2.shape[1]
+  mcd, final_frame_number = mel_cepstral_dist_with_equaling_frame_number(
+    mfccs_1, mfccs_2, use_dtw)
+  penalty = dtw_penalty(former_frame_number_1,
+                        former_frame_number_2, final_frame_number)
+  return mcd, penalty, final_frame_number
+
+
+def mel_cepstral_dist_with_equaling_frame_number(mfccs_1: np.ndarray, mfccs_2: np.ndarray, use_dtw: bool) -> Tuple[float, int]:
   if mfccs_1.shape[0] != mfccs_2.shape[0]:
     raise Exception("The number of coefficients per frame has to be the same for both inputs.")
-  aligned_mfccs_1, aligned_mfccs_2 = align_mfccs_with_dtw(mfccs_1.T, mfccs_2.T)
-  return mel_cepstral_dist(aligned_mfccs_1, aligned_mfccs_2)
+  equal_frame_number_mfcc_1, equal_frame_number_mfcc_2 = align_mfccs_with_dtw(mfccs_1.T, mfccs_2.T)
+  return mel_cepstral_dist(equal_frame_number_mfcc_1, equal_frame_number_mfcc_2)
 
 
-def mcd_with_dtw_and_penalty(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, float, int]:
-  former_length_1 = mfccs_1.shape[1]
-  former_length_2 = mfccs_2.shape[1]
-  mcd, length_after_dtw = mel_cepstral_dist_dtw(mfccs_1, mfccs_2)
-  penalty = dtw_penalty(former_length_1, former_length_2, length_after_dtw)
-  return mcd, penalty, length_after_dtw
-
-
-def mel_cepstral_dist_fill_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
-  if mfccs_1.shape[0] != mfccs_2.shape[0]:
-    raise Exception("The number of coefficients per frame has to be the same for both inputs.")
-  aligned_mfccs_1, aligned_mfccs_2 = fill_rest_with_zeros(mfccs_1, mfccs_2)
-  return mel_cepstral_dist(aligned_mfccs_1, aligned_mfccs_2)
-
-
-def fill_rest_with_zeros(array_1: np.ndarray, array_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-  dim_1 = array_1.shape[1]
-  dim_2 = array_2.shape[1]
-  diff = abs(dim_1 - dim_2)
-  if diff > 0:
-    adding_array = np.zeros(shape=(array_1.shape[0], diff))
-    if dim_1 < dim_2:
-      array_1 = np.concatenate((array_1, adding_array), axis=1)
-    else:
-      array_2 = np.concatenate((array_2, adding_array), axis=1)
-  assert array_1.shape == array_2.shape
-  return array_1, array_2
-
-
-def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
-  if mfccs_1.shape[0] != mfccs_2.shape[0]:
-    raise Exception("The number of coefficients per frame has to be the same for both inputs.")
-  if mfccs_1.shape[1] != mfccs_2.shape[1]:
-    raise Exception(
-      "The number of frames has to be the same for both inputs. Please use mel_cepstral_dist_dtw.")
-  mfccs_diff = mfccs_1 - mfccs_2
-  mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
-  mcd = np.mean(mfccs_diff_norms)
-  no_of_frames = len(mfccs_diff_norms)
-  return mcd, no_of_frames
+def equal_frame_number(mfccs_1: np.ndarray, mfccs_2: np.ndarray, use_dtw: bool):
+  if use_dtw:
+    return align_mfccs_with_dtw(mfccs_1, mfccs_2)
+  return fill_rest_with_zeros(mfccs_1, mfccs_2)
 
 
 def align_mfccs_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -154,6 +89,28 @@ def align_mfccs_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.n
   mfccs_1 = mfccs_1[path_for_input]
   mfccs_2 = mfccs_2[path_for_output]
   return mfccs_1.T, mfccs_2.T
+
+
+def fill_rest_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+  frame_number_1 = mfccs_1.shape[1]
+  frame_number_2 = mfccs_2.shape[1]
+  diff = abs(frame_number_1 - frame_number_2)
+  if diff > 0:
+    adding_array = np.zeros(shape=(mfccs_1.shape[0], diff))
+    if frame_number_1 < frame_number_2:
+      mfccs_1 = np.concatenate((mfccs_1, adding_array), axis=1)
+    else:
+      mfccs_2 = np.concatenate((mfccs_2, adding_array), axis=1)
+  assert mfccs_1.shape == mfccs_2.shape
+  return mfccs_1, mfccs_2
+
+
+def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+  mfccs_diff = mfccs_1 - mfccs_2
+  mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
+  mcd = np.mean(mfccs_diff_norms)
+  frame_number = len(mfccs_diff_norms)
+  return mcd, frame_number
 
 
 def dtw_penalty(former_length_1: int, former_length_2: int, length_after_dtw: int) -> float:

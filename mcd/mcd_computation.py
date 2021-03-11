@@ -1,9 +1,28 @@
+from dataclasses import dataclass
 from typing import Tuple
 
 import librosa
 import numpy as np
 from fastdtw.fastdtw import fastdtw
 from scipy.spatial.distance import euclidean
+
+
+@dataclass
+class Params:
+  n_fft: int = 1024
+  hop_length: int = 256
+  n_mels: int = 20
+  no_of_coeffs_per_frame: int = 16
+  use_dtw: bool = True
+  window: str = "hamming"
+
+
+@dataclass
+class MCD_Result:
+  mcd: float
+  penalty: float
+  final_number_of_frames: int
+  added_frames: int
 
 
 def get_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
@@ -28,7 +47,7 @@ def get_mcd_fill_with_zeros_from_paths(path_1: str, path_2: str, n_fft: int = 10
   return mel_cepstral_dist_fill_with_zeros(mfccs_1, mfccs_2)
 
 
-def get_mcd_dtw_with_penalty_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> float:
+def get_mcd_dtw_and_penalty_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> Tuple[float, float, int]:
   audio_1, sr_1 = get_audio_and_sampling_rate_from_path(path_1)
   audio_2, sr_2 = get_audio_and_sampling_rate_from_path(path_2)
   spectogram_1 = get_spectogram(audio_1, n_fft, hop_length)
@@ -37,7 +56,7 @@ def get_mcd_dtw_with_penalty_from_paths(path_1: str, path_2: str, n_fft: int = 1
   mel_spectogram_2 = get_mel_spectogram(spectogram_2, sr_2, n_mels)
   mfccs_1 = get_mfccs(mel_spectogram_1, no_of_coeffs_per_frame)
   mfccs_2 = get_mfccs(mel_spectogram_2, no_of_coeffs_per_frame)
-  return mcd_with_dtw_penalty(mfccs_1, mfccs_2, 1)
+  return mcd_with_dtw_and_penalty(mfccs_1, mfccs_2)
 
 
 def get_mcd_dtw_from_mel_spectograms(mel_spectogram_1: np.ndarray, mel_spectogram_2: np.ndarray, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
@@ -86,12 +105,12 @@ def mel_cepstral_dist_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[flo
   return mel_cepstral_dist(aligned_mfccs_1, aligned_mfccs_2)
 
 
-def mcd_with_dtw_penalty(mfccs_1: np.ndarray, mfccs_2: np.ndarray, alpha: float) -> float:
+def mcd_with_dtw_and_penalty(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, float, int]:
   former_length_1 = mfccs_1.shape[1]
   former_length_2 = mfccs_2.shape[1]
   mcd, length_after_dtw = mel_cepstral_dist_dtw(mfccs_1, mfccs_2)
   penalty = dtw_penalty(former_length_1, former_length_2, length_after_dtw)
-  return mcd + alpha * penalty
+  return mcd, penalty, length_after_dtw
 
 
 def mel_cepstral_dist_fill_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:

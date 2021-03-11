@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from typing import Any, Callable
 
-from mcd.mcd_computation import get_mcd_dtw_from_paths
+from mcd.mcd_computation import get_mcd_and_penalty_and_frame_number_from_path
 
 
 def _add_parser_to(subparsers: Any, name: str, init_method: Callable) -> ArgumentParser:
@@ -41,7 +41,7 @@ def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
 
 
 def print_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int, hop_length: int, n_mels: int, no_of_coeffs_per_frame: int):
-  mcd, frames = get_mcd_dtw_from_paths(
+  mcd, frames = get_mcd_and_penalty_and_frame_number_from_path(
     path_1, path_2, n_fft, hop_length, n_mels, no_of_coeffs_per_frame)
   print(
     f"The mel-cepstral distance between the two WAV files is {mcd}. This was computed using {frames} frames.")

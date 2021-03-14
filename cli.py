@@ -41,10 +41,10 @@ def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.add_argument("-c", "--center", type=bool, required=False, default=False)
   parser.add_argument("-m", "--n_mels", type=int, required=False, default=20)
   parser.add_argument("-t", "--htk", type=bool, required=False, default=True)
-  parser.add_argument("-l", "--norm", required=False, default=None)
+  parser.add_argument("-o", "--norm", required=False, default=None)
   parser.add_argument("-y", "--dtype", type=np.dtype, required=False, default=np.float64)
   parser.add_argument("-n", "--no_of_coeffs_per_frame", type=int, required=False, default=16)
-  parser.add_argument("-d", "--dtw", type=bool, required=False, default=True)
+  parser.add_argument("-d", "--use_dtw", type=bool, required=False, default=True)
   return print_mcd_dtw_from_paths
 
 
@@ -61,7 +61,8 @@ def print_mcd_dtw_from_paths(wav_file_1: str, wav_file_2: str, n_fft: int, hop_l
     norm=norm,
     dtype=dtype,
     no_of_coeffs_per_frame=no_of_coeffs_per_frame,
-    use_dtw=use_dtw)
+    use_dtw=use_dtw
+  )
   print(
     f"The mel-cepstral distance between the two WAV files is {mcd} and the penalty is {penalty}. This was computed using {frames} frames.")
 

@@ -8,4 +8,4 @@
 #                                  mel_cepstral_dist_dtw,
 #                                  mel_cepstral_dist_fill_with_zeros)
 
-from mcd.mcd_computation import get_mcd_between_wav_files
+from mcd.mcd_computation import get_mcd_between_wav_files, get_mcd_between_audios

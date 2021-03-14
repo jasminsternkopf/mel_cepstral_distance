@@ -4,7 +4,6 @@ from typing import Tuple
 import librosa
 import numpy as np
 from fastdtw.fastdtw import fastdtw
-from librosa.feature.spectral import mfcc
 from scipy.spatial.distance import euclidean
 
 
@@ -26,31 +25,57 @@ class MCD_Result:
   added_frames: int
 
 
-def get_mcd_and_penalty_and_frame_number_from_path(path_1: str, path_2: str, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64, no_of_coeffs_per_frame: int = 16, use_dtw: bool = True) -> Tuple[float, float, int]:
-  audio_1, sr_1 = librosa.load(path_1, mono=True)
-  audio_2, sr_2 = librosa.load(path_2, mono=True)
-  return get_mcd_and_penalty_and_frame_number(audio_1, audio_2, sr_1, sr_2, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype, no_of_coeffs_per_frame=no_of_coeffs_per_frame, use_dtw=use_dtw)
+def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int = 256, n_fft: int = 1024,
+                              window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True,
+                              norm=None, dtype=np.float64, no_of_coeffs_per_frame: int = 16, use_dtw: bool = True
+                              ) -> Tuple[float, float, int]:
+  audio_1, sr_1 = librosa.load(wav_file_1, mono=True)
+  audio_2, sr_2 = librosa.load(wav_file_2, mono=True)
+  return get_mcd_between_audios(
+    audio_1=audio_1,
+    audio_2=audio_2,
+    sr_1=sr_1,
+    sr_2=sr_2,
+    hop_length=hop_length,
+    n_fft=n_fft,
+    window=window,
+    center=center,
+    n_mels=n_mels,
+    htk=htk,
+    norm=norm,
+    dtype=dtype, no_of_coeffs_per_frame=no_of_coeffs_per_frame, use_dtw=use_dtw)
 
 
-def get_mcd_and_penalty_and_frame_number(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, sr_2: int, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64, no_of_coeffs_per_frame: int = 16, use_dtw: bool = True) -> Tuple[float, float, int]:
-  # mel_spectogram_1, sr_1 = get_mel_spectogram_from_path(
-  #   path_1, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
-  # mel_spectogram_2, sr_2 = get_mel_spectogram_from_path(
-  #   path_2, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
+def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, sr_2: int, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64, no_of_coeffs_per_frame: int = 16, use_dtw: bool = True) -> Tuple[float, float, int]:
   if sr_1 != sr_2:
     print("Warning: The sampling rates differ.")
-  mfccs_1 = get_mfccs(audio_1, sr=sr_1, hop_length=hop_length, n_fft=n_fft, window=window, center=center,
-                      n_mels=n_mels, htk=htk, norm=norm, dtype=dtype, no_of_coeffs_per_frame=no_of_coeffs_per_frame)
-  mfccs_2 = get_mfccs(audio_2, sr=sr_2, hop_length=hop_length, n_fft=n_fft, window=window, center=center,
-                      n_mels=n_mels, htk=htk, norm=norm, dtype=dtype, no_of_coeffs_per_frame=no_of_coeffs_per_frame)
+  mfccs_1 = get_mfccs(
+    audio=audio_1,
+    sr=sr_1,
+    hop_length=hop_length,
+    n_fft=n_fft,
+    window=window,
+    center=center,
+    n_mels=n_mels,
+    htk=htk,
+    norm=norm,
+    dtype=dtype,
+    no_of_coeffs_per_frame=no_of_coeffs_per_frame
+  )
+  mfccs_2 = get_mfccs(
+    audio=audio_2,
+    sr=sr_2,
+    hop_length=hop_length,
+    n_fft=n_fft,
+    window=window,
+    center=center,
+    n_mels=n_mels,
+    htk=htk,
+    norm=norm,
+    dtype=dtype,
+    no_of_coeffs_per_frame=no_of_coeffs_per_frame
+  )
   return mel_cepstral_distance_and_penalty_and_final_frame_number(mfccs_1, mfccs_2, use_dtw)
-
-
-# def get_mel_spectogram_from_path(path: str, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming',
-#                                  center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64) -> Tuple[np.ndarray, str]:
-#   audio, sr = librosa.load(path, mono=True)
-
-#   return mel_spectogram, sr
 
 
 def cos_func(i: int, n: int, n_mels: int) -> float:
@@ -62,7 +87,6 @@ def get_mfccs(audio: np.ndarray, sr: int, hop_length: int = 256, n_fft: int = 10
   mel_spectogram = librosa.feature.melspectrogram(
     audio, sr=sr, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
   log_mel_spectogram = np.log10(mel_spectogram)
-  n_mels = mel_spectogram.shape[0]
   cos_matrix = np.fromfunction(cos_func, (no_of_coeffs_per_frame, n_mels),
                                dtype=np.float64, n_mels=n_mels)
   mfccs = cos_matrix @ log_mel_spectogram

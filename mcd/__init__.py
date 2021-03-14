@@ -8,4 +8,4 @@
 #                                  mel_cepstral_dist_dtw,
 #                                  mel_cepstral_dist_fill_with_zeros)
 
-from mcd.mcd_computation import get_mcd_and_penalty_and_frame_number_from_path
+from mcd.mcd_computation import get_mcd_between_wav_files

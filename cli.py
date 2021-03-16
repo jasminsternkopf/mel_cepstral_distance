@@ -43,12 +43,12 @@ def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.add_argument("-t", "--htk", type=bool, required=False, default=True)
   parser.add_argument("-o", "--norm", required=False, default=None)
   parser.add_argument("-y", "--dtype", type=np.dtype, required=False, default=np.float64)
-  parser.add_argument("-n", "--no_of_coeffs_per_frame", type=int, required=False, default=16)
+  parser.add_argument("-n", "--n_mfcc", type=int, required=False, default=16)
   parser.add_argument("-d", "--use_dtw", type=bool, required=False, default=True)
   return print_mcd_dtw_from_paths
 
 
-def print_mcd_dtw_from_paths(wav_file_1: str, wav_file_2: str, n_fft: int, hop_length: int, window: str, center: bool, n_mels: int, htk: bool, norm, dtype: np.dtype, no_of_coeffs_per_frame: int, use_dtw: bool):
+def print_mcd_dtw_from_paths(wav_file_1: str, wav_file_2: str, n_fft: int, hop_length: int, window: str, center: bool, n_mels: int, htk: bool, norm, dtype: np.dtype, n_mfcc: int, use_dtw: bool):
   mcd, penalty, frames = get_mcd_between_wav_files(
     wav_file_1=wav_file_1,
     wav_file_2=wav_file_2,
@@ -60,7 +60,7 @@ def print_mcd_dtw_from_paths(wav_file_1: str, wav_file_2: str, n_fft: int, hop_l
     htk=htk,
     norm=norm,
     dtype=dtype,
-    no_of_coeffs_per_frame=no_of_coeffs_per_frame,
+    n_mfcc=n_mfcc,
     use_dtw=use_dtw
   )
   print(

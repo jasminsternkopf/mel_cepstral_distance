@@ -37,7 +37,7 @@ There are some parameters with default values which can be specified the followi
 - n_fft: `-f` or `--n_fft`
 - hop_length: `-l` or `--hop_length`
 - n_mels: `-m` or `--n_mels`
-- no_of_coeffs_per_frame: `-c` or `--no_of_coeffs_per_frame`
+- n_mfcc: `-c` or `--n_mfcc`
 
 For more information about these parameters, see below.
 
@@ -56,9 +56,9 @@ python3.8 -m pipenv install -e git+https://github.com/jasminsternkopf/mel_cepstr
 ### Methods
 
 ```py
-def get_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
+def get_mcd_dtw_from_paths(path_1: str, path_2: str, n_fft: int = 1024, hop_length: int = 256, n_mels: int = 20, n_mfcc: int = 16) -> Tuple[float, int]:
   ...
-def get_mcd_dtw_from_mel_spectograms(mel_spectogram_1: np.ndarray, mel_spectogram_2: np.ndarray, no_of_coeffs_per_frame: int = 16) -> Tuple[float, int]:
+def get_mcd_dtw_from_mel_spectograms(mel_spectogram_1: np.ndarray, mel_spectogram_2: np.ndarray, n_mfcc: int = 16) -> Tuple[float, int]:
   ...
 def get_audio_and_sampling_rate_from_path(path: str) -> Tuple[np.ndarray, int]:
   ...
@@ -66,7 +66,7 @@ def get_spectogram(audio: np.ndarray, n_fft: int = 1024, hop_length: int = 256) 
   ...
 def get_mel_spectogram(spectogram: np.ndarray, sr: int = 22050, n_mels: int = 20) -> np.ndarray:
   ...
-def get_mfccs(mel_spectogram: np.ndarray, no_of_coeffs_per_frame: int = 16) -> np.ndarray:
+def get_mfccs(mel_spectogram: np.ndarray, n_mfcc: int = 16) -> np.ndarray:
   ...
 def mel_cepstral_dist_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
   ...
@@ -87,9 +87,9 @@ You can also change the default parameters, those are the following:
 - `n_fft`: `n_fft/2+1` is the number of rows of the spectograms and mel-spectograms. It should be a power of two to optimize the speed oft the Fast Fourier Transformation
 - `hop_length`: specifies the number of audio samples between adjacent Short Term Fourier Transformation-columns, therefore plays a role in computing the spectogram
 - `n_mels`: the number of mel bands
-- `no_of_coeffs_per_frame`: the number of mel-cepstral coefficients per frame that are used to compute the mel-cepstral distance (please notice the zeroth coefficient is not included in the computation, as it is primarily affected by system gain rather than system distortion according to the paper).
+- `n_mfcc`: the number of mel-cepstral coefficients per frame that are used to compute the mel-cepstral distance (please notice the zeroth coefficient is not included in the computation, as it is primarily affected by system gain rather than system distortion according to the paper).
 
-The default values for `n_mels` (`20`) and for `no_of_coeffs_per_frame` (`16`) are taken from the mentioned paper, the ones for `n_fft` (`1024`) and `hop_length` (`256`) were chosen by me.
+The default values for `n_mels` (`20`) and for `n_mfcc` (`16`) are taken from the mentioned paper, the ones for `n_fft` (`1024`) and `hop_length` (`256`) were chosen by me.
 
 There are some parameters for the calculation of the Short Time Fourier Transformation (STFT, used for computing the spectograms) and the mel-filter banks which cannot be set by you when calling the methods. These are:
 

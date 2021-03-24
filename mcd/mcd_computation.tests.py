@@ -1,8 +1,10 @@
 import unittest
 
+import librosa
 import numpy as np
 
-from mcd.mcd_computation import get_mcd_between_wav_files
+from mcd.mcd_computation import (get_mcd_between_mel_spectograms,
+                                 get_mcd_between_wav_files, get_mfccs_of_audio)
 
 
 class UnitTests(unittest.TestCase):
@@ -192,6 +194,41 @@ class UnitTests(unittest.TestCase):
   # endregion
 
   # endregion
+
+  # region get_mfccs_of_mel_spectogram
+
+  def test_mcd_of_mel_spectograms_of_similar_audios(self):
+    audio_1, sr_1 = librosa.load("examples/similar_audios/original.wav", mono=True)
+    audio_2, sr_2 = librosa.load("examples/similar_audios/inferred.wav", mono=True)
+    mel_1 = librosa.feature.melspectrogram(audio_1, sr=sr_1, hop_length=256, n_fft=1024,
+                                           window="hamming", center=False, n_mels=20, htk=True, norm=None, dtype=np.float64)
+    mel_2 = librosa.feature.melspectrogram(audio_2, sr=sr_2, hop_length=256, n_fft=1024,
+                                           window="hamming", center=False, n_mels=20, htk=True, norm=None, dtype=np.float64)
+    res = get_mcd_between_mel_spectograms(mel_1, mel_2)
+
+    self.assertAlmostEqual(res[0], 8.613918022570173)
+
+  def test_penalty_of_mel_spectograms_of_similar_audios(self):
+    audio_1, sr_1 = librosa.load("examples/similar_audios/original.wav", mono=True)
+    audio_2, sr_2 = librosa.load("examples/similar_audios/inferred.wav", mono=True)
+    mel_1 = librosa.feature.melspectrogram(audio_1, sr=sr_1, hop_length=256, n_fft=1024,
+                                           window="hamming", center=False, n_mels=20, htk=True, norm=None, dtype=np.float64)
+    mel_2 = librosa.feature.melspectrogram(audio_2, sr=sr_2, hop_length=256, n_fft=1024,
+                                           window="hamming", center=False, n_mels=20, htk=True, norm=None, dtype=np.float64)
+    res = get_mcd_between_mel_spectograms(mel_1, mel_2)
+
+    self.assertAlmostEqual(res[1], 0.18923933209647492)
+
+  def test_frame_number_of_mel_spectograms_of_similar_audios(self):
+    audio_1, sr_1 = librosa.load("examples/similar_audios/original.wav", mono=True)
+    audio_2, sr_2 = librosa.load("examples/similar_audios/inferred.wav", mono=True)
+    mel_1 = librosa.feature.melspectrogram(audio_1, sr=sr_1, hop_length=256, n_fft=1024,
+                                           window="hamming", center=False, n_mels=20, htk=True, norm=None, dtype=np.float64)
+    mel_2 = librosa.feature.melspectrogram(audio_2, sr=sr_2, hop_length=256, n_fft=1024,
+                                           window="hamming", center=False, n_mels=20, htk=True, norm=None, dtype=np.float64)
+    res = get_mcd_between_mel_spectograms(mel_1, mel_2)
+
+    self.assertEqual(res[2], 539)
 
 
 if __name__ == '__main__':

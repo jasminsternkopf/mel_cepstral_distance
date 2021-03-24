@@ -168,9 +168,9 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
   return mel_cepstral_distance_and_penalty_and_final_frame_number(mfccs_1, mfccs_2, use_dtw)
 
 
-def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, sr_1: int, sr_2: int, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True) -> Tuple[float, float, int]:
-  mfccs_1 = get_mfccs_of_mel_spectogram(mel_1, sr_1, n_mfcc, take_log)
-  mfccs_2 = get_mfccs_of_mel_spectogram(mel_2, sr_2, n_mfcc, take_log)
+def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True) -> Tuple[float, float, int]:
+  mfccs_1 = get_mfccs_of_mel_spectogram(mel_1, n_mfcc, take_log)
+  mfccs_2 = get_mfccs_of_mel_spectogram(mel_2, n_mfcc, take_log)
   res = mel_cepstral_distance_and_penalty_and_final_frame_number(
     mfccs_1=mfccs_1, mfccs_2=mfccs_2, use_dtw=use_dtw)
   return res
@@ -180,15 +180,14 @@ def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int = 256, n_fft:
                        center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64, n_mfcc: int = 16) -> np.ndarray:
   mel_spectogram = librosa.feature.melspectrogram(
     audio, sr=sr, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
-  mfccs = get_mfccs_of_mel_spectogram(mel_spectogram, sr, n_mfcc)
+  mfccs = get_mfccs_of_mel_spectogram(mel_spectogram, n_mfcc)
   return mfccs
 
 
-def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, sr: int, n_mfcc: int, take_log: bool = True):
+def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_log: bool = True):
   mel_spectogram = np.log10(mel_spectogram) if take_log else mel_spectogram
   mfccs = librosa.feature.mfcc(
     S=mel_spectogram,
-    sr=sr,
     n_mfcc=n_mfcc + 1,
     norm=None
   )

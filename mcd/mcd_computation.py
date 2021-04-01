@@ -98,7 +98,7 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
     mcd         : float
         the mel-cepstral distance between the two input audios
     penalty     : float
-        a term punishing for the number of frames that had to be added to align the mel-cepstral coefficient arrays with Dynamic Time Warping (for `use_dtw = True`) or to equal the frame numbers via filling up one mel-cepstral coefficent array with zeros (for `use_dtw = False`). It lies between zero and one, zero is reached if no columns were added to either array.
+        a term punishing for the number of frames that had to be added to align the mel-cepstral coefficient arrays with Dynamic Time Warping (for `use_dtw = True`) or to equal the frame numbers via filling up one mel-cepstral coefficent array with zeros (for `use_dtw = False`). The penalty is the sum of the number of added frames of each of the two arrays divided by the final frame number (see below). It lies between zero and one, zero is reached if no columns were added to either array.
     final_frame_number : int
         the number of columns of one of the mel-cepstral coefficient arrays after applying Dynamic Time Warping or filling up with zeros
 
@@ -150,15 +150,17 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
     dtype=dtype,
     n_mfcc=n_mfcc
   )
-  return mel_cepstral_distance_and_penalty_and_final_frame_number(mfccs_1, mfccs_2, use_dtw)
+  mcd, penalty, final_frame_number = mel_cepstral_distance_and_penalty_and_final_frame_number(
+    mfccs_1, mfccs_2, use_dtw)
+  return mcd, penalty, final_frame_number
 
 
 def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True) -> Tuple[float, float, int]:
   mfccs_1 = get_mfccs_of_mel_spectogram(mel_1, n_mfcc, take_log)
   mfccs_2 = get_mfccs_of_mel_spectogram(mel_2, n_mfcc, take_log)
-  res = mel_cepstral_distance_and_penalty_and_final_frame_number(
+  mcd, penalty, final_frame_number = mel_cepstral_distance_and_penalty_and_final_frame_number(
     mfccs_1=mfccs_1, mfccs_2=mfccs_2, use_dtw=use_dtw)
-  return res
+  return mcd, penalty, final_frame_number
 
 
 def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming',
@@ -197,24 +199,25 @@ def mel_cepstral_dist_with_equaling_frame_number(mfccs_1: np.ndarray, mfccs_2: n
                                                  use_dtw: bool) -> Tuple[float, int]:
   if mfccs_1.shape[0] != mfccs_2.shape[0]:
     raise Exception("The number of coefficients per frame has to be the same for both inputs.")
-  equal_frame_number_mfcc_1, equal_frame_number_mfcc_2 = make_frame_number_equal(
+  equal_frame_number_mfcc_1, equal_frame_number_mfcc_2, dist_or_none = make_frame_number_equal(
     mfccs_1, mfccs_2, use_dtw)
-  return mel_cepstral_dist(equal_frame_number_mfcc_1, equal_frame_number_mfcc_2)
+  return mel_cepstral_dist(equal_frame_number_mfcc_1, equal_frame_number_mfcc_2, dist_or_none)
 
 
 def make_frame_number_equal(mfccs_1: np.ndarray, mfccs_2: np.ndarray, use_dtw: bool) -> Tuple[np.ndarray, np.ndarray]:
   if use_dtw:
-    return align_mfccs_with_dtw(mfccs_1.T, mfccs_2.T)
-  return fill_rest_with_zeros(mfccs_1, mfccs_2)
+    return align_mfccs_with_dtw_and_compute_mcd(mfccs_1, mfccs_2)
+  return fill_rest_with_zeros(mfccs_1, mfccs_2), None
 
 
-def align_mfccs_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-  _, path_between_mfccs = fastdtw(mfccs_1, mfccs_2, dist=euclidean)
+def align_mfccs_with_dtw_and_compute_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+  mfccs_1, mfccs_2 = mfccs_1.T, mfccs_2.T
+  distance, path_between_mfccs = fastdtw(mfccs_1, mfccs_2, dist=euclidean)
   path_for_input = list(map(lambda l: l[0], path_between_mfccs))
   path_for_output = list(map(lambda l: l[1], path_between_mfccs))
   mfccs_1 = mfccs_1[path_for_input]
   mfccs_2 = mfccs_2[path_for_output]
-  return mfccs_1.T, mfccs_2.T
+  return mfccs_1.T, mfccs_2.T, distance
 
 
 def fill_rest_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -231,11 +234,16 @@ def fill_rest_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.n
   return mfccs_1, mfccs_2
 
 
-def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
-  mfccs_diff = mfccs_1 - mfccs_2
-  mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
-  mcd = np.mean(mfccs_diff_norms)
-  frame_number = len(mfccs_diff_norms)
+def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray, dist_or_none) -> Tuple[float, int]:
+  if dist_or_none is None:
+    mfccs_diff = mfccs_1 - mfccs_2
+    mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
+    mcd = np.mean(mfccs_diff_norms)
+    frame_number = len(mfccs_diff_norms)
+    return mcd, frame_number
+  distance = dist_or_none
+  frame_number = mfccs_1.shape[1]
+  mcd = distance / frame_number
   return mcd, frame_number
 
 

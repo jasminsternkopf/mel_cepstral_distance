@@ -34,7 +34,7 @@ def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int 
 
 def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, sr_2: int, hop_length: int = 256,
                            n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20,
-                           htk: bool = True, norm=None, dtype=np.float64, n_mfcc: int = 16,
+                           htk: bool = True, norm=None, dtype: np.dtype=np.float64, n_mfcc: int = 16,
                            use_dtw: bool = True) -> Tuple[float, float, int]:
   """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the final number of frames that are used to compute the mel-cepstral distance.
 
@@ -150,15 +150,17 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
     dtype=dtype,
     n_mfcc=n_mfcc
   )
-  mcd, penalty, final_frame_number = mel_cepstral_distance_and_penalty_and_final_frame_number(
+  mcd, penalty, final_frame_number = get_mcd_and_penalty_and_final_frame_number(
     mfccs_1, mfccs_2, use_dtw)
   return mcd, penalty, final_frame_number
 
 
 def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True) -> Tuple[float, float, int]:
+  if mel_1.shape[0] != mel_2.shape[0]:
+    print("Warning: the numbers of mel-bands that were used to compute the corresponding mel-spectogram differ.")
   mfccs_1 = get_mfccs_of_mel_spectogram(mel_1, n_mfcc, take_log)
   mfccs_2 = get_mfccs_of_mel_spectogram(mel_2, n_mfcc, take_log)
-  mcd, penalty, final_frame_number = mel_cepstral_distance_and_penalty_and_final_frame_number(
+  mcd, penalty, final_frame_number = get_mcd_and_penalty_and_final_frame_number(
     mfccs_1=mfccs_1, mfccs_2=mfccs_2, use_dtw=use_dtw)
   return mcd, penalty, final_frame_number
 
@@ -171,7 +173,7 @@ def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int = 256, n_fft:
   return mfccs
 
 
-def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_log: bool = True):
+def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_log: bool = True) -> np.ndarray:
   mel_spectogram = np.log10(mel_spectogram) if take_log else mel_spectogram
   mfccs = librosa.feature.mfcc(
     S=mel_spectogram,
@@ -184,39 +186,26 @@ def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_lo
   return mfccs
 
 
-def mel_cepstral_distance_and_penalty_and_final_frame_number(mfccs_1: np.ndarray, mfccs_2: np.ndarray,
-                                                             use_dtw: bool) -> Tuple[float, float, int]:
+def get_mcd_and_penalty_and_final_frame_number(mfccs_1: np.ndarray, mfccs_2: np.ndarray,
+                                               use_dtw: bool) -> Tuple[float, float, int]:
   former_frame_number_1 = mfccs_1.shape[1]
   former_frame_number_2 = mfccs_2.shape[1]
-  mcd, final_frame_number = mel_cepstral_dist_with_equaling_frame_number(
+  mcd, final_frame_number = equal_frame_numbers_and_get_mcd(
     mfccs_1, mfccs_2, use_dtw)
-  penalty = dtw_penalty(former_frame_number_1,
+  penalty = get_penalty(former_frame_number_1,
                         former_frame_number_2, final_frame_number)
   return mcd, penalty, final_frame_number
 
 
-def mel_cepstral_dist_with_equaling_frame_number(mfccs_1: np.ndarray, mfccs_2: np.ndarray,
-                                                 use_dtw: bool) -> Tuple[float, int]:
+def equal_frame_numbers_and_get_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray,
+                                    use_dtw: bool) -> Tuple[float, int]:
   if mfccs_1.shape[0] != mfccs_2.shape[0]:
     raise Exception("The number of coefficients per frame has to be the same for both inputs.")
   if use_dtw:
-    mcd, final_frame_number = compute_mcd_with_dtw(mfccs_1, mfccs_2)
+    mcd, final_frame_number = get_mcd_with_dtw(mfccs_1, mfccs_2)
     return mcd, final_frame_number
-  mcd, final_frame_number = fill_with_zeros_and_compute_dtw(mfccs_1, mfccs_2)
-  return mcd, final_frame_number
-
-
-def compute_mcd_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-  mfccs_1, mfccs_2 = mfccs_1.T, mfccs_2.T
-  distance, path_between_mfccs = fastdtw(mfccs_1, mfccs_2, dist=euclidean)
-  final_frame_number = len(path_between_mfccs)
-  mcd = distance / final_frame_number
-  return mcd, final_frame_number
-
-
-def fill_with_zeros_and_compute_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray):
   mfccs_1, mfccs_2 = fill_rest_with_zeros(mfccs_1, mfccs_2)
-  mcd, final_frame_number = mel_cepstral_dist(mfccs_1, mfccs_2)
+  mcd, final_frame_number = get_mcd(mfccs_1, mfccs_2)
   return mcd, final_frame_number
 
 
@@ -234,7 +223,16 @@ def fill_rest_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.n
   return mfccs_1, mfccs_2
 
 
-def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+def get_mcd_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+  mfccs_1, mfccs_2 = mfccs_1.T, mfccs_2.T
+  distance, path_between_mfccs = fastdtw(mfccs_1, mfccs_2, dist=euclidean)
+  final_frame_number = len(path_between_mfccs)
+  mcd = distance / final_frame_number
+  return mcd, final_frame_number
+
+
+def get_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+  assert mfccs_1.shape == mfccs_2.shape
   mfccs_diff = mfccs_1 - mfccs_2
   mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
   mcd = np.mean(mfccs_diff_norms)
@@ -242,7 +240,7 @@ def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, 
   return mcd, frame_number
 
 
-def dtw_penalty(former_length_1: int, former_length_2: int, length_after_dtw: int) -> float:
+def get_penalty(former_length_1: int, former_length_2: int, length_after_equaling: int) -> float:
   # lies between 0 and 1, the smaller the better
-  penalty = 2 - (former_length_1 + former_length_2) / length_after_dtw
+  penalty = 2 - (former_length_1 + former_length_2) / length_after_equaling
   return penalty

@@ -199,25 +199,25 @@ def mel_cepstral_dist_with_equaling_frame_number(mfccs_1: np.ndarray, mfccs_2: n
                                                  use_dtw: bool) -> Tuple[float, int]:
   if mfccs_1.shape[0] != mfccs_2.shape[0]:
     raise Exception("The number of coefficients per frame has to be the same for both inputs.")
-  equal_frame_number_mfcc_1, equal_frame_number_mfcc_2, dist_or_none = make_frame_number_equal(
-    mfccs_1, mfccs_2, use_dtw)
-  return mel_cepstral_dist(equal_frame_number_mfcc_1, equal_frame_number_mfcc_2, dist_or_none)
-
-
-def make_frame_number_equal(mfccs_1: np.ndarray, mfccs_2: np.ndarray, use_dtw: bool) -> Tuple[np.ndarray, np.ndarray]:
   if use_dtw:
-    return align_mfccs_with_dtw_and_compute_mcd(mfccs_1, mfccs_2)
-  return fill_rest_with_zeros(mfccs_1, mfccs_2), None
+    mcd, final_frame_number = compute_mcd_with_dtw(mfccs_1, mfccs_2)
+    return mcd, final_frame_number
+  mcd, final_frame_number = fill_with_zeros_and_compute_dtw(mfccs_1, mfccs_2)
+  return mcd, final_frame_number
 
 
-def align_mfccs_with_dtw_and_compute_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def compute_mcd_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
   mfccs_1, mfccs_2 = mfccs_1.T, mfccs_2.T
   distance, path_between_mfccs = fastdtw(mfccs_1, mfccs_2, dist=euclidean)
-  path_for_input = list(map(lambda l: l[0], path_between_mfccs))
-  path_for_output = list(map(lambda l: l[1], path_between_mfccs))
-  mfccs_1 = mfccs_1[path_for_input]
-  mfccs_2 = mfccs_2[path_for_output]
-  return mfccs_1.T, mfccs_2.T, distance
+  final_frame_number = len(path_between_mfccs)
+  mcd = distance / final_frame_number
+  return mcd, final_frame_number
+
+
+def fill_with_zeros_and_compute_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray):
+  mfccs_1, mfccs_2 = fill_rest_with_zeros(mfccs_1, mfccs_2)
+  mcd, final_frame_number = mel_cepstral_dist(mfccs_1, mfccs_2)
+  return mcd, final_frame_number
 
 
 def fill_rest_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -234,16 +234,11 @@ def fill_rest_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.n
   return mfccs_1, mfccs_2
 
 
-def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray, dist_or_none) -> Tuple[float, int]:
-  if dist_or_none is None:
-    mfccs_diff = mfccs_1 - mfccs_2
-    mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
-    mcd = np.mean(mfccs_diff_norms)
-    frame_number = len(mfccs_diff_norms)
-    return mcd, frame_number
-  distance = dist_or_none
-  frame_number = mfccs_1.shape[1]
-  mcd = distance / frame_number
+def mel_cepstral_dist(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+  mfccs_diff = mfccs_1 - mfccs_2
+  mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
+  mcd = np.mean(mfccs_diff_norms)
+  frame_number = len(mfccs_diff_norms)
   return mcd, frame_number
 
 

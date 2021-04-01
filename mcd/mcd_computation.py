@@ -7,13 +7,6 @@ from fastdtw.fastdtw import fastdtw
 from librosa.feature.spectral import mfcc
 from scipy.spatial.distance import euclidean
 
-# @dataclass
-# class MCD_Result:
-#   mcd: float
-#   penalty: float
-#   final_frame_number: int
-#   added_frames: int
-
 
 def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int = 256, n_fft: int = 1024,
                               window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True,
@@ -43,7 +36,7 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
                            n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20,
                            htk: bool = True, norm=None, dtype=np.float64, n_mfcc: int = 16,
                            use_dtw: bool = True) -> Tuple[float, float, int]:
-  """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to be added to equal both frame numbers or to align the mel-cepstral coefficients when using DTW and the final number of frames that are used to compute the mel-cepstral distance.
+  """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the final number of frames that are used to compute the mel-cepstral distance.
 
     Parameters
     ----------
@@ -60,11 +53,11 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
         sampling rate of the second incoming signal
 
     hop_length : int > 0 [scalar]
-        number of samples between successive frames.
+        specifies the number of audio samples between adjacent Short Term Fourier Transformation-columns, therefore plays a role in computing the (mel-)spectograms which are needed to compute the mel-cepstral coefficients
         See `librosa.core.stft`
 
     n_fft     : int > 0 [scalar]
-        number of FFT components
+        `n_fft/2+1` is the number of rows of the spectograms. `n_fft` should be a power of two to optimize the speed oft the Fast Fourier Transformation
         See `librosa.core.stft`
 
     window    : string, tuple, number, function, or np.ndarray [shape=(n_fft,)]
@@ -87,7 +80,7 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
         use HTK formula instead of Slaney when creating the mel-filter bank
 
     norm      : {None, 1, np.inf} [scalar]
-        if 1, divide the triangular mel weights by the width of the mel band
+        determines if and how the mel weights are normalized: if 1, divide the triangular mel weights by the width of the mel band
         (area normalization).  Otherwise, leave all the triangles aiming for
         a peak value of 1.0
 
@@ -95,47 +88,39 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
         data type of the output
 
     n_mfcc  : int > 0 [scalar]
-        the number of mel-cepstral coefficents that are computed per frame, starting with the first coefficent (the zeroth coefficient is omitted)
+        the number of mel-cepstral coefficents that are computed per frame, starting with the first coefficent (the zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion according to Robert F. Kubichek)
 
     use_dtw:  : bool [scalar]
+        to compute the mel-cepstral distance, the number of frames has to be the same for both audios. If `use_dtw` is `True`, Dynamic Time Warping is used to align both arrays containing the respective mel-cepstral coefficients, otherwise the array with less columns is filled with zeros from the right side.
 
     Returns
     -------
-    M         : np.ndarray [shape=(n_mels, 1 + n_fft/2)]
-        Mel transform matrix
+    mcd         : float
+        the mel-cepstral distance between the two input audios
+    penalty     : float
+        a term punishing for the number of frames that had to be added to align the mel-cepstral coefficient arrays with Dynamic Time Warping (for `use_dtw = True`) or to equal the frame numbers via filling up one mel-cepstral coefficent array with zeros (for `use_dtw = False`). It lies between zero and one, zero is reached if no columns were added to either array.
+    final_frame_number : int
+        the number of columns of one of the mel-cepstral coefficient arrays after applying Dynamic Time Warping or filling up with zeros
 
-    Notes
-    -----
-    This function caches at level 10.
-
-    Examples
+    Example
     --------
-    >>> melfb = librosa.filters.mel(22050, 2048)
-    >>> melfb
-    array([[ 0.   ,  0.016, ...,  0.   ,  0.   ],
-           [ 0.   ,  0.   , ...,  0.   ,  0.   ],
-           ...,
-           [ 0.   ,  0.   , ...,  0.   ,  0.   ],
-           [ 0.   ,  0.   , ...,  0.   ,  0.   ]])
 
+    Comparing two audios to another audio using the sum of the mel-cepstral distance and the penalty
 
-    Clip the maximum frequency to 8KHz
-
-    >>> librosa.filters.mel(22050, 2048, fmax=8000)
-    array([[ 0.  ,  0.02, ...,  0.  ,  0.  ],
-           [ 0.  ,  0.  , ...,  0.  ,  0.  ],
-           ...,
-           [ 0.  ,  0.  , ...,  0.  ,  0.  ],
-           [ 0.  ,  0.  , ...,  0.  ,  0.  ]])
-
-
-    >>> import matplotlib.pyplot as plt
-    >>> plt.figure()
-    >>> librosa.display.specshow(melfb, x_axis='linear')
-    >>> plt.ylabel('Mel filter')
-    >>> plt.title('Mel filter bank')
-    >>> plt.colorbar()
-    >>> plt.tight_layout()
+    >>> import librosa
+    >>> audio_1, sr_1 = librosa.load("exampleaudio_1.wav")
+    >>> audio_2, sr_2 = librosa.load("exampleaudio_2.wav")
+    >>> audio_3, sr_3 = librosa.load("exampleaudio_3.wav")
+    >>> mcd_12, penalty_12, _ = get_mcd_between_audios(audio_1, audio_2, sr_1, sr_2)
+    >>> mcd_13, penalty_13, _ = get_mcd_between_audios(audio_1, audio_3, sr_1, sr_3)
+    >>> mcd_with_penalty_12 = mcd_12 + penalty_12
+    >>> mcd_with_penalty_13 = mcd_13 + penalty_13
+    >>> if mcd_with_penalty_12 < mcd_with_penalty_13:
+    >>>   print("Audio 2 seems to be more similar to audio 1 than audio 3.")
+    >>> elif mcd_with_penalty_13 < mcd_with_penalty_12:
+    >>>   print("Audio 3 seems to be more similar to audio 1 than audio 2.")
+    >>> else:
+    >>>   print("Audio 2 and audio 3 seem to share the same similarity to audio 1.")
     """
   if sr_1 != sr_2:
     print("Warning: The sampling rates differ.")

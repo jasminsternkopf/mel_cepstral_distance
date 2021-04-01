@@ -72,6 +72,9 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
                            htk: bool = True, norm=None, dtype=np.float64, n_mfcc: int = 16,
                            use_dtw: bool = True) -> Tuple[float, float, int]:
   ...
+def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc: int = 16, take_log: bool = True,
+                            use_dtw: bool = True) -> Tuple[float, float, int]:
+  ...
 ```
 
 If you want to compute the mel-cepstral distance between two WAV files, use `get_mcd_between_wav_files` with the paths of the respective audio files as input like in this example:
@@ -101,16 +104,6 @@ There are some parameters for the calculation of the Short Time Fourier Transfor
 
 - `center = False` and `window = 'hamming'` for STFT, see [here](https://librosa.org/doc/latest/generated/librosa.stft.html) to find out more about these parameters. The Hamming-Window was chosen because it was used in a [paper](https://ieeexplore.ieee.org/document/1163420) referenced by Kubichek.
 - `norm = None`, `dtype = np.float64`, `htk = True` for the mel-filter banks, see [here](https://librosa.org/doc/latest/generated/librosa.filters.mel.html) for details.
-
-Usually, the number of frames of two different audios does not coincide, but this needs to be the case to compute the mel-cepstral distance. Therefore I use Dynamic Time Warping (dtw) to align the coefficient arrays for both audios (this also enhances comparability). If you want to use a different way to align the arrays, feel free to do so, you can still use this code:
-
-- turn the path of you WAV file into an audio array and the audio's sampling rate with `get_audio_and_sampling_rate_from_path`
-- input the audio array in `get_spectogram` and receive a spectogram
-- turn the spectogram into a mel-spectogram with `get_mel_spectogram`
-- compute the mel-cepstral coefficients with `get_mfccs`, where you use the mel-spectogram as an input
-- do the same for the second WAV file
-- make sure both mel-cepstral coefficient arrays have the same shape
-- input those arrays in `mel_cepstral_dist`
 
 The output values of `get_mcd_between_wav_files` and `get_mcd_between_audios` are the mel-cepstral distance and the number of frames per audio (the number of columns of each (aligned) mel-cepstral coefficient array).
 

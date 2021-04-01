@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Any, Optional, Tuple
 
 import librosa
 import numpy as np
@@ -10,8 +10,9 @@ from scipy.spatial.distance import euclidean
 
 def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int = 256, n_fft: int = 1024,
                               window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True,
-                              norm=None, dtype=np.float64, n_mfcc: int = 16, use_dtw: bool = True
+                              norm: Optional[Any]=None, dtype: np.dtype=np.float64, n_mfcc: int = 16, use_dtw: bool = True
                               ) -> Tuple[float, float, int]:
+
   audio_1, sr_1 = librosa.load(wav_file_1, mono=True)
   audio_2, sr_2 = librosa.load(wav_file_2, mono=True)
   return get_mcd_between_audios(
@@ -34,7 +35,7 @@ def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int 
 
 def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, sr_2: int, hop_length: int = 256,
                            n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20,
-                           htk: bool = True, norm=None, dtype: np.dtype=np.float64, n_mfcc: int = 16,
+                           htk: bool = True, norm: Optional[Any]=None, dtype: np.dtype = np.float64, n_mfcc: int = 16,
                            use_dtw: bool = True) -> Tuple[float, float, int]:
   """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the final number of frames that are used to compute the mel-cepstral distance.
 
@@ -165,8 +166,8 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc
   return mcd, penalty, final_frame_number
 
 
-def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming',
-                       center: bool = False, n_mels: int = 20, htk: bool = True, norm=None, dtype=np.float64, n_mfcc: int = 16) -> np.ndarray:
+def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int, n_fft: int, window: str,
+                       center: bool, n_mels: int, htk: bool, norm: Optional[Any], dtype: np.dtype, n_mfcc: int) -> np.ndarray:
   mel_spectogram = librosa.feature.melspectrogram(
     audio, sr=sr, hop_length=hop_length, n_fft=n_fft, window=window, center=center, n_mels=n_mels, htk=htk, norm=norm, dtype=dtype)
   mfccs = get_mfccs_of_mel_spectogram(mel_spectogram, n_mfcc)

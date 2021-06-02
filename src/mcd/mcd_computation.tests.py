@@ -4,7 +4,7 @@ import librosa
 import numpy as np
 
 from mcd.mcd_computation import (get_mcd_between_mel_spectograms,
-                                 get_mcd_between_wav_files, get_mfccs_of_audio)
+                                 get_mcd_between_wav_files)
 
 
 class UnitTests(unittest.TestCase):

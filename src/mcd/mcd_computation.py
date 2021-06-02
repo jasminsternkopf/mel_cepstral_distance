@@ -1,10 +1,8 @@
-from dataclasses import dataclass
 from typing import Any, Optional, Tuple
 
 import librosa
 import numpy as np
 from fastdtw.fastdtw import fastdtw
-from librosa.feature.spectral import mfcc
 from scipy.spatial.distance import euclidean
 
 

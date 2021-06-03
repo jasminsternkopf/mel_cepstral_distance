@@ -27,7 +27,7 @@ def _process_args(args: Namespace) -> None:
     invoke_handler = params.pop("invoke_handler")
     invoke_handler(**params)
   else:
-    print("Please specifiy which method you want to invoke.")
+    print("Please specify which method you want to invoke.")
 
 
 def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:

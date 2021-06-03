@@ -58,7 +58,7 @@ def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int 
         data type of the output
 
     n_mfcc    : int > 0 [scalar]
-        the number of mel-cepstral coefficents that are computed per frame, starting with the first coefficent (the
+        the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the
         zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion
         according to Robert F. Kubichek)
 
@@ -74,7 +74,7 @@ def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int 
     penalty    : float
         a term punishing for the number of frames that had to be added to align the mel-cepstral coefficient arrays
         with Dynamic Time Warping (for `use_dtw = True`) or to equal the frame numbers via filling up one mel-cepstral
-        coefficent array with zeros (for `use_dtw = False`). The penalty is the sum of the number of added frames of
+        coefficient array with zeros (for `use_dtw = False`). The penalty is the sum of the number of added frames of
         each of the two arrays divided by the final frame number (see below). It lies between zero and one, zero is
         reached if no columns were added to either array.
     final_frame_number : int
@@ -177,7 +177,7 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
         data type of the output
 
     n_mfcc    : int > 0 [scalar]
-        the number of mel-cepstral coefficents that are computed per frame, starting with the first coefficent (the
+        the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the
         zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion
         according to Robert F. Kubichek)
 
@@ -193,7 +193,7 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
     penalty    : float
         a term punishing for the number of frames that had to be added to align the mel-cepstral coefficient arrays
         with Dynamic Time Warping (for `use_dtw = True`) or to equal the frame numbers via filling up one mel-cepstral
-        coefficent array with zeros (for `use_dtw = False`). The penalty is the sum of the number of added frames of
+        coefficient array with zeros (for `use_dtw = False`). The penalty is the sum of the number of added frames of
         each of the two arrays divided by the final frame number (see below). It lies between zero and one, zero is
         reached if no columns were added to either array.
     final_frame_number : int
@@ -261,17 +261,17 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc
 
     Parameters
     ----------
-    mel_1 	  : np.ndaray [shape=(k,n)]
+    mel_1 	  : np.ndarray [shape=(k,n)]
         first mel spectogram
 
-    mel_2     : np.ndaray [shape=(k,m)]
+    mel_2     : np.ndarray [shape=(k,m)]
         second mel spectogram
 
     take_log     : bool
         should be set to `False` if log10 already has been applied to the input mel spectograms, otherwise `True`
 
     n_mfcc    : int > 0 [scalar]
-        the number of mel-cepstral coefficents that are computed per frame, starting with the first coefficent (the
+        the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the
         zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion
         according to Robert F. Kubichek)
 
@@ -287,7 +287,7 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc
     penalty     : float
         a term punishing for the number of frames that had to be added to align the mel-cepstral coefficient arrays
         with Dynamic Time Warping (for `use_dtw = True`) or to equal the frame numbers via filling up one mel-cepstral
-        coefficent array with zeros (for `use_dtw = False`). The penalty is the sum of the number of added frames of
+        coefficient array with zeros (for `use_dtw = False`). The penalty is the sum of the number of added frames of
         each of the two arrays divided by the final frame number (see below). It lies between zero and one, zero is
         reached if no columns were added to either array.
     final_frame_number : int

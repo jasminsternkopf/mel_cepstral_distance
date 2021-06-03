@@ -78,35 +78,9 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc
   ...
 ```
 
-If you want to compute the mel-cepstral distance between two WAV files, use `get_mcd_between_wav_files` with the paths of the respective audio files as input like in this example:
+All above methods return the mel-cepstral distance, the penalty and the final frame number. Examples and information on the parameters can be found in the ......
+Some
 
-```py
-from mcd import get_mcd_between_wav_files
-
-mcd, penalty, final_frame_number = get_mcd_between_wav_files("examples/similar_audios/original.wav", "examples/similar_audios/inferred.wav")
-```
-
-You can also change the default parameters, those are the following:
-
-- `n_fft`: `n_fft/2+1` is the number of rows of the spectograms and mel-spectograms. `n_fft` should be a power of two to optimize the speed oft the Fast Fourier Transformation
-- `hop_length`: specifies the number of audio samples between adjacent Short Term Fourier Transformation-columns, therefore plays a role in computing the (mel-)spectograms which are needed to compute the mel-cepstral coefficients
-- window: `-w` or `--window`
-- center: if `True`, the audio signal `y` is padded so that the frame `D[:, t]` is centered at `y[t*hop_length]` with `D` being the short-time Fourier transform of `y`, otherwise `D[:, t]` begins at `y[t*hop_length]`
-- `n_mels`: the number of mel bands
-- htk: is a parameter for creating the mel-filter bank. If `True`, the HTK formula is used instead of Slaney
-- norm: determines if and how the mel weights are normalized
-- dtype: data type of the output
-- `n_mfcc`: the number of mel-cepstral coefficients per frame that are used to compute the mel-cepstral distance (please notice the zeroth coefficient is not included in the computation, as it is primarily affected by system gain rather than system distortion according to the paper).
-- use_dtw: `-d` or `--use_dtw`
-
-The default values for `n_mels` (`20`) and for `n_mfcc` (`16`) are taken from the mentioned paper, the ones for `n_fft` (`1024`) and `hop_length` (`256`) were chosen by me.
-
-There are some parameters for the calculation of the Short Time Fourier Transformation (STFT, used for computing the spectograms) and the mel-filter banks which cannot be set by you when calling the methods. These are:
-
-- `center = False` and `window = 'hamming'` for STFT, see [here](https://librosa.org/doc/latest/generated/librosa.stft.html) to find out more about these parameters. The Hamming-Window was chosen because it was used in a [paper](https://ieeexplore.ieee.org/document/1163420) referenced by Kubichek.
-- `norm = None`, `dtype = np.float64`, `htk = True` for the mel-filter banks, see [here](https://librosa.org/doc/latest/generated/librosa.filters.mel.html) for details.
-
-The output values of `get_mcd_between_wav_files` and `get_mcd_between_audios` are the mel-cepstral distance and the number of frames per audio (the number of columns of each (aligned) mel-cepstral coefficient array).
 
 ## Contributing
 

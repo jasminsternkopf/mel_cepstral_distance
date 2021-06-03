@@ -21,16 +21,17 @@ python3.8 -m pipenv sync
 You can use the client for example via
 
 ```sh
-pipenv run python -m cli print_mcd -a="examples/similar_audios/original.wav" -b="examples/similar_audios/inferred.wav"
+cd src
+pipenv run python -m cli print_mcd -a="../examples/similar_audios/original.wav" -b="../examples/similar_audios/inferred.wav"
 ```
 
 Output:
 
 ```sh
-The mel-cepstral distance between the two WAV files is 8.613918026817176. This was computed using 539 frames.
+The mel-cepstral distance between the two WAV files is 8.613918026817169 and the penalty is 0.18923933209647492. This was computed using 539 frames.
 ```
 
-This will print a message informing you about the mel-cepstral distance between the audios whose paths were given as arguments and the number of frames that were used in the computation.
+This will print a message informing you about the mel-cepstral distance and penalty between the audios whose paths were given as arguments and the number of frames that were used in the computation.
 
 There are some parameters with default values which can be specified the following ways:
 
@@ -45,7 +46,7 @@ There are some parameters with default values which can be specified the followi
 - n_mfcc: `-c` or `--n_mfcc`
 - use_dtw: `-d` or `--use_dtw`
 
-For more information about these parameters, see below.
+For more information about these parameters, see .........
 
 ## Usage as a Library
 

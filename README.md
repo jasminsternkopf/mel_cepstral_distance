@@ -46,7 +46,7 @@ There are some parameters with default values which can be specified the followi
 - n_mfcc: `-c` or `--n_mfcc`
 - use_dtw: `-d` or `--use_dtw`
 
-For more information about these parameters, see .........
+For more information about these parameters, have a look into the documentation of the method `get_mcd_between_wav_files`.
 
 ## Usage as a Library
 
@@ -78,9 +78,7 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc
   ...
 ```
 
-All above methods return the mel-cepstral distance, the penalty and the final frame number. Examples and information on the parameters can be found in the ......
-Some
-
+All above methods return the mel-cepstral distance, the penalty and the final frame number. Examples and information on the parameters can be found in the corresponding documentations.
 
 ## Contributing
 

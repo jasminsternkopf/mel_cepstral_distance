@@ -9,7 +9,7 @@ pylint = "*"
 pycodestyle = "*"
 isort = "*"
 pipenv-setup = "*"
-mcd = {path = "."}
+mcd = {editable = true, path = "."}
 pytest-xdist = "*"
 pytest = "*"
 unittest2pytest = "*"

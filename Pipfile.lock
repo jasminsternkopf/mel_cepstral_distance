@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c6acac53dcc3fe746b9fb4a30ade106e61f12f342bb314903c46e97a45c2a679"
+            "sha256": "bdfd4aa5c4697581bb3a67c10132c57c56971745072993da67875aa7245bcb66"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -644,8 +644,8 @@
             "version": "==0.6.1"
         },
         "mcd": {
-            "path": ".",
-            "version": "==1.0.0"
+            "editable": true,
+            "path": "."
         },
         "numba": {
             "hashes": [

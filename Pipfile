@@ -9,6 +9,10 @@ pylint = "*"
 pycodestyle = "*"
 isort = "*"
 pipenv-setup = "*"
+mcd = {path = "."}
+pytest-xdist = "*"
+pytest = "*"
+unittest2pytest = "*"
 
 [packages]
 librosa = "*"

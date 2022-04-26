@@ -6,6 +6,25 @@ import numpy as np
 
 from mel_cepstral_distance.mcd_computation import get_mcd_between_wav_files
 
+WINDOWS = [
+  "hamming",
+  "hann",
+  "boxcar",
+  "triang",
+  "blackman",
+  "bartlett",
+  "flattop",
+  "parzen",
+  "bohman",
+  "blackmanharris",
+  "nuttall",
+  "barthann",
+  "cosine",
+  "exponential",
+  "tukey",
+  "taylor",
+]
+
 
 def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.description = "This program calculates the MCD between two audio files."
@@ -16,7 +35,8 @@ def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.add_argument("-f", "--n_fft", type=int, default=1024,
                       help="`n_fft/2+1` is the number of rows of the spectograms. `n_fft` should be a power of two to optimize the speed of the Fast Fourier Transformation")
   parser.add_argument("-l", "--hop_length", type=int, default=256)
-  parser.add_argument("-w", "--window", type=str, default="hamming")
+  parser.add_argument("-w", "--window", type=str, choices=WINDOWS,
+                      help="name of the window function; for details see: `scipy.signal.get_window`", default="hamming")
   parser.add_argument("-c", "--center", action="store_true")
   parser.add_argument("-m", "--n_mels", type=int, default=20)
   parser.add_argument("-t", "--htk", action="store_true")

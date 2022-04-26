@@ -12,10 +12,10 @@ CLI and library to compute the mel-cepstral distance of two WAV files based on t
 pip install mel-cepstral-distance --user
 ```
 
-## CLI Usage
+## Usage as CLI
 
 ```sh
-mcd-cli print-mcd \
+mcd-cli \
   "../examples/similar_audios/original.wav" \
   "../examples/similar_audios/inferred.wav"
 ```

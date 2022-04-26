@@ -1,15 +1,20 @@
+from logging import getLogger
+from pathlib import Path
 from typing import Any, Optional, Tuple
 
 import librosa
 import numpy as np
 from fastdtw.fastdtw import fastdtw
+from librosa.feature import melspectrogram
 from scipy.spatial.distance import euclidean
 
+from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
 
-def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int = 256, n_fft: int = 1024,
+
+def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, hop_length: int = 256, n_fft: int = 1024,
                               window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True,
                               norm: Optional[Any] = None, dtype: np.dtype = np.float64, n_mfcc: int = 16,
-                              use_dtw: bool = True) -> Tuple[float, float, int]:
+                              use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
   """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
   be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the
   final number of frames that are used to compute the mel-cepstral distance.
@@ -122,7 +127,7 @@ def get_mcd_between_wav_files(wav_file_1: str, wav_file_2: str, hop_length: int 
 def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, sr_2: int, hop_length: int = 256,
                            n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20,
                            htk: bool = True, norm: Optional[Any] = None, dtype: np.dtype = np.float64, n_mfcc: int = 16,
-                           use_dtw: bool = True) -> Tuple[float, float, int]:
+                           use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
   """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
   be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the
   final number of frames that are used to compute the mel-cepstral distance.
@@ -221,7 +226,8 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
     >>>   print("Audio 2 and audio 3 seem to share the same similarity to audio 1.")
     """
   if sr_1 != sr_2:
-    print("Warning: The sampling rates differ.")
+    logger = getLogger(__name__)
+    logger.warning("The sampling rates differ!")
   mfccs_1 = get_mfccs_of_audio(
     audio=audio_1,
     sr=sr_1,
@@ -233,7 +239,7 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
     htk=htk,
     norm=norm,
     dtype=dtype,
-    n_mfcc=n_mfcc
+    n_mfcc=n_mfcc,
   )
   mfccs_2 = get_mfccs_of_audio(
     audio=audio_2,
@@ -246,7 +252,7 @@ def get_mcd_between_audios(audio_1: np.ndarray, audio_2: np.ndarray, sr_1: int, 
     htk=htk,
     norm=norm,
     dtype=dtype,
-    n_mfcc=n_mfcc
+    n_mfcc=n_mfcc,
   )
   mcd, penalty, final_frame_number = get_mcd_and_penalty_and_final_frame_number(
     mfccs_1, mfccs_2, use_dtw)
@@ -295,29 +301,37 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc
         filling up with zeros
     """
   if mel_1.shape[0] != mel_2.shape[0]:
-    print("Warning: the numbers of mel-bands that were used to compute the corresponding mel-spectogram differ.")
+    logger = getLogger(__name__)
+    logger.warning(
+      "The numbers of mel-bands that were used to compute the corresponding mel-spectogram differ!")
   mfccs_1 = get_mfccs_of_mel_spectogram(mel_1, n_mfcc, take_log)
   mfccs_2 = get_mfccs_of_mel_spectogram(mel_2, n_mfcc, take_log)
   mcd, penalty, final_frame_number = get_mcd_and_penalty_and_final_frame_number(
     mfccs_1=mfccs_1, mfccs_2=mfccs_2, use_dtw=use_dtw)
   return mcd, penalty, final_frame_number
 
-from librosa.feature import melspectrogram
 
 def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int, n_fft: int, window: str,
                        center: bool, n_mels: int, htk: bool, norm: Optional[Any], dtype: np.dtype,
                        n_mfcc: int) -> np.ndarray:
   mel_spectogram = melspectrogram(
-    audio,
+    y=audio,
     sr=sr,
     hop_length=hop_length,
     n_fft=n_fft,
     window=window,
     center=center,
+    S=None,
+    pad_mode="constant",
+    power=2.0,
+    win_length=None,
+    # librosa.filters.mel arguments:
     n_mels=n_mels,
     htk=htk,
     norm=norm,
-    dtype=dtype
+    dtype=dtype,
+    fmin=0.0,
+    fmax=None,
   )
   mfccs = get_mfccs_of_mel_spectogram(mel_spectogram, n_mfcc)
   return mfccs
@@ -328,18 +342,22 @@ def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_lo
   mfccs = librosa.feature.mfcc(
     S=mel_spectogram,
     n_mfcc=n_mfcc + 1,
-    norm=None
+    norm=None,
+    y=None,
+    sr=None,
+    dct_type=2,
+    lifter=0,
   )
   # according to "Mel-Cepstral Distance Measure for Objective Speech Quality Assessment" by R. Kubichek, the zeroth
   # coefficient is omitted
   # there are different variants of the Discrete Cosine Transform Type II, the one that librosa's mfcc uses is 2 times
   # bigger than the one we want to use (which appears in Kubicheks paper)
-  mfccs = 1 / 2 * mfccs[1:]
+  mfccs = mfccs[1:] / 2
   return mfccs
 
 
 def get_mcd_and_penalty_and_final_frame_number(mfccs_1: np.ndarray, mfccs_2: np.ndarray, use_dtw: bool
-                                               ) -> Tuple[float, float, int]:
+                                               ) -> Tuple[MelCepstralDistance, Penalty, Frames]:
   former_frame_number_1 = mfccs_1.shape[1]
   former_frame_number_2 = mfccs_2.shape[1]
   mcd, final_frame_number = equal_frame_numbers_and_get_mcd(
@@ -350,7 +368,7 @@ def get_mcd_and_penalty_and_final_frame_number(mfccs_1: np.ndarray, mfccs_2: np.
 
 
 def equal_frame_numbers_and_get_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray,
-                                    use_dtw: bool) -> Tuple[float, int]:
+                                    use_dtw: bool) -> Tuple[MelCepstralDistance, Frames]:
   if mfccs_1.shape[0] != mfccs_2.shape[0]:
     raise Exception("The number of coefficients per frame has to be the same for both inputs.")
   if use_dtw:
@@ -375,7 +393,7 @@ def fill_rest_with_zeros(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[np.n
   return mfccs_1, mfccs_2
 
 
-def get_mcd_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+def get_mcd_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[MelCepstralDistance, Frames]:
   mfccs_1, mfccs_2 = mfccs_1.T, mfccs_2.T
   distance, path_between_mfccs = fastdtw(mfccs_1, mfccs_2, dist=euclidean)
   final_frame_number = len(path_between_mfccs)
@@ -383,7 +401,7 @@ def get_mcd_with_dtw(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, i
   return mcd, final_frame_number
 
 
-def get_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
+def get_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[MelCepstralDistance, Frames]:
   assert mfccs_1.shape == mfccs_2.shape
   mfccs_diff = mfccs_1 - mfccs_2
   mfccs_diff_norms = np.linalg.norm(mfccs_diff, axis=0)
@@ -392,7 +410,7 @@ def get_mcd(mfccs_1: np.ndarray, mfccs_2: np.ndarray) -> Tuple[float, int]:
   return mcd, frame_number
 
 
-def get_penalty(former_length_1: int, former_length_2: int, length_after_equaling: int) -> float:
+def get_penalty(former_length_1: int, former_length_2: int, length_after_equaling: int) -> Penalty:
   # lies between 0 and 1, the smaller the better
   penalty = 2 - (former_length_1 + former_length_2) / length_after_equaling
   return penalty

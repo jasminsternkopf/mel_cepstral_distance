@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/mel-cepstral-distance.svg)](https://pypi.python.org/pypi/mel-cepstral-distance)
 [![PyPI](https://img.shields.io/pypi/pyversions/mel-cepstral-distance.svg)](https://pypi.python.org/pypi/mel-cepstral-distance)
-[![MIT](https://img.shields.io/github/license/jasminsternkopf/mel_cepstral_distance.svg)](LICENSE)
+[![MIT](https://img.shields.io/github/license/jasminsternkopf/mel_cepstral_distance.svg)](https://github.com/jasminsternkopf/mel_cepstral_distance/blob/main/LICENSE)
 
 CLI and library to compute the mel-cepstral distance of two WAV files based on the paper ["Mel-Cepstral Distance Measure for Objective Speech Quality Assessment"](https://ieeexplore.ieee.org/document/407206) by Robert F. Kubichek.
 

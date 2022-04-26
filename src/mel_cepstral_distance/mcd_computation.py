@@ -350,7 +350,7 @@ def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_lo
   )
   # according to "Mel-Cepstral Distance Measure for Objective Speech Quality Assessment" by R. Kubichek, the zeroth
   # coefficient is omitted
-  # there are different variants of the Discrete Cosine Transform Type II, the one that librosa's mfcc uses is 2 times
+  # there are different variants of the Discrete Cosine Transform Type II, the one that librosa's MFCC uses is 2 times
   # bigger than the one we want to use (which appears in Kubicheks paper)
   mfccs = mfccs[1:] / 2
   return mfccs

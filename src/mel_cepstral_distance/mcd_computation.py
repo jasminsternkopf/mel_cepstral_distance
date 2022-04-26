@@ -11,7 +11,7 @@ from mel_cepstral_distance.core import (get_mcd_and_penalty_and_final_frame_numb
 from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
 
 
-def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, hop_length: int = 256, n_fft: int = 1024,
+def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 256, n_fft: int = 1024,
                               window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True,
                               norm: Optional[Any] = None, dtype: np.dtype = np.float64, n_mfcc: int = 16,
                               use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
@@ -104,13 +104,19 @@ def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, hop_length: in
     >>>   print("Audio 2 and audio 3 seem to share the same similarity to audio 1.")
     """
 
+  if not wav_file_1.is_file():
+    raise ValueError("Parameter 'wav_file_1': File not found!")
+  if not wav_file_2.is_file():
+    raise ValueError("Parameter 'wav_file_2': File not found!")
+
   audio_1, sr_1 = load(wav_file_1, sr=None, mono=True, res_type=None,
                        offset=0.0, duration=None, dtype=np.float32)
   audio_2, sr_2 = load(wav_file_2, sr=None, mono=True, res_type=None,
                        offset=0.0, duration=None, dtype=np.float32)
 
   if sr_1 != sr_2:
-    raise ValueError("The sampling rates need to be equal!")
+    raise ValueError(
+      "Parameters 'wav_file_1' and 'wav_file_2': The sampling rates need to be equal!")
 
   mel_spectogram1 = melspectrogram(
     y=audio_1,
@@ -152,10 +158,10 @@ def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, hop_length: in
     fmax=None,
   )
 
-  return get_mcd_between_mel_spectograms(mel_spectogram1, mel_spectogram2, n_mfcc, take_log=True, use_dtw=use_dtw)
+  return get_mcd_between_mel_spectograms(mel_spectogram1, mel_spectogram2, n_mfcc=n_mfcc, take_log=True, use_dtw=use_dtw)
 
 
-def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc: int = 16, take_log: bool = True,
+def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, take_log: bool = True,
                                     use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
   """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
   be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the

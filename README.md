@@ -15,9 +15,16 @@ pip install mel-cepstral-distance --user
 ## Usage as CLI
 
 ```sh
-mcd-cli \
-  "../examples/similar_audios/original.wav" \
-  "../examples/similar_audios/inferred.wav"
+mcd-cli
+```
+
+### Example
+
+```sh
+wget https://github.com/jasminsternkopf/mel_cepstral_distance/raw/main/examples/similar_audios/original.wav
+wget https://github.com/jasminsternkopf/mel_cepstral_distance/raw/main/examples/similar_audios/inferred.wav
+
+mcd-cli original.wav inferred.wav
 ```
 
 Output:

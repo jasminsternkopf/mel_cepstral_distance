@@ -1,4 +1,5 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
+from logging import getLogger
 from pathlib import Path
 from typing import Callable
 
@@ -27,40 +28,54 @@ WINDOWS = [
 
 
 def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
-  parser.description = "This program calculates the MCD between two audio files."
+  parser.description = "This program calculates the MCD between two audio files. Both audio files need to have the same sampling rate."
   parser.add_argument("wav_1", type=Path, metavar="wav-1",
                       help="path to the first .wav file")
   parser.add_argument("wav_2", type=Path, metavar="wav-2",
                       help="path to the second .wav file")
-  parser.add_argument("-f", "--n_fft", type=int, default=1024,
-                      help="`n_fft/2+1` is the number of rows of the spectograms. `n_fft` should be a power of two to optimize the speed of the Fast Fourier Transformation")
-  parser.add_argument("-l", "--hop_length", type=int, default=256)
+  parser.add_argument("-f", "--n-fft", type=int, default=1024,
+                      help="`n_fft/2+1` is the number of rows of the spectograms. `n_fft` should be a power of two to optimize the speed of the Fast Fourier Transformation (FFT)")
+  parser.add_argument("-l", "--hop-length", type=int, default=256,
+                      help="specifies the number of audio samples between adjacent Short Term Fourier Transformation (STFT)-columns, therefore plays a role in computing the (mel-)spectograms which are needed to compute the mel-cepstral coefficients; for details see `librosa.core.stft`")
   parser.add_argument("-w", "--window", type=str, choices=WINDOWS,
                       help="name of the window function; for details see: `scipy.signal.get_window`", default="hamming")
-  parser.add_argument("-c", "--center", action="store_true")
-  parser.add_argument("-m", "--n_mels", type=int, default=20)
-  parser.add_argument("-t", "--htk", action="store_true")
-  parser.add_argument("-o", "--norm", default=None)
-  parser.add_argument("-y", "--dtype", type=np.dtype, default=np.float64)
-  parser.add_argument("-n", "--n_mfcc", type=int, default=16)
-  parser.add_argument("-d", "--use_dtw", action="store_true")
+  parser.add_argument("-c", "--center", action="store_true",
+                      help="if specified, the signal `audio_i` is padded so that frame `D[:, t]` with `D` being the Short-term Fourier transform of the audio is centered at `audio_i[t * hop_length]` for i=1,2; otherwise `D[:, t]` begins at `audio_i[t * hop_length]` for i=1,2")
+  parser.add_argument("-m", "--n-mels", type=int, default=20,
+                      help="number of Mel bands to generate")
+  parser.add_argument("-t", "--htk", action="store_true",
+                      help="use HTK formula instead of Slaney when creating the mel-filter bank")
+  parser.add_argument("-o", "--norm", type=int, default=None,
+                      help="determines if and how the mel weights are normalized: if 1, divide the triangular mel weights by the width of the mel band (area normalization); otherwise, leave all the triangles aiming for a peak value of 1.0")
+  #parser.add_argument("-y", "--dtype", type=np.dtype, default=np.float64,help="data type of the spectrograms")
+  parser.add_argument("-n", "--n-mfcc", type=int, default=16,
+                      help="the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion according to Robert F. Kubichek)")
+  parser.add_argument("-d", "--dtw", action="store_true", help="to compute the mel-cepstral distance, the number of frames has to be the same for both audios; if the parameter is specified, Dynamic Time Warping (DTW) is used to align both arrays containing the respective mel-cepstral coefficients, otherwise the array with less columns is filled with zeros from the right side.")
   return print_mcd_dtw_from_paths
 
 
-def print_mcd_dtw_from_paths(wav_1: Path, wav_2: Path, n_fft: int, hop_length: int, window: str, center: bool, n_mels: int, htk: bool, norm, dtype: np.dtype, n_mfcc: int, use_dtw: bool):
+def print_mcd_dtw_from_paths(ns: Namespace):
+  if not ns.wav_1.is_file():
+    raise ValueError("Parameter 'wav-1': File not found!")
+  if not ns.wav_2.is_file():
+    raise ValueError("Parameter 'wav-2': File not found!")
+
   mcd, penalty, frames = get_mcd_between_wav_files(
-    wav_file_1=wav_1,
-    wav_file_2=wav_2,
-    hop_length=hop_length,
-    n_fft=n_fft,
-    window=window,
-    center=center,
-    n_mels=n_mels,
-    htk=htk,
-    norm=norm,
-    dtype=dtype,
-    n_mfcc=n_mfcc,
-    use_dtw=use_dtw
+    ns.wav_1,
+    ns.wav_2,
+    hop_length=ns.hop_length,
+    n_fft=ns.n_fft,
+    window=ns.window,
+    center=ns.center,
+    n_mels=ns.n_mels,
+    htk=ns.htk,
+    norm=ns.norm,
+    dtype=np.float64,
+    n_mfcc=ns.n_mfcc,
+    use_dtw=ns.dtw,
   )
-  print(
-    f"The mel-cepstral distance between the two WAV files is {mcd} and the penalty is {penalty}. This was computed using {frames} frames.")
+
+  logger = getLogger(__name__)
+  logger.info(f"Mel-Cepstral Distance: {mcd}")
+  logger.info(f"Penalty: {penalty}")
+  logger.info(f"# Frames: {frames}")

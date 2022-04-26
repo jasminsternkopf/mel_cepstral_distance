@@ -15,10 +15,10 @@ autoflake = "*"
 twine = "*"
 
 [packages]
-librosa = "*"
-numpy = "*"
-scipy = "*"
-fastdtw = "*"
+librosa = ">=0.9.1"
+numpy = ">=1.22.3"
+scipy = ">=1.8.0"
+fastdtw = ">=0.3.4"
 
 [requires]
 python_version = "3.8"

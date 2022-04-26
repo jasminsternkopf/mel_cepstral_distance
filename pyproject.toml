@@ -20,9 +20,14 @@ keywords = [
   "Text-to-speech",
   "Speech synthesis",
   "MCD",
-  "Spectrogram",
-  "Divergence",
   "Mel",
+  "DTW",
+  "Dynamic Time Warping",
+  "Cepstral",
+  "Spectrogram",
+  "Distance",
+  "Divergence",
+  "Distortion",
   "Language",
   "Linguistics"
 ]

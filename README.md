@@ -52,6 +52,13 @@ from mel_cepstral_distance import get_metrics_wavs, get_metrics_mels
 
 Both methods return the mel-cepstral distance, the penalty and the final frame number. Examples and information on the parameters can be found in the corresponding documentations.
 
+### Dependencies
+
+- librosa >= 0.9.1
+- numpy >= 1.22.3
+- scipy >= 1.8.0
+- fastdtw >= 0.3.4
+
 ## Contributing
 
 If you notice an error, please don't hesitate to open an issue.

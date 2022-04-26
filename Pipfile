@@ -4,15 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+mel_cepstral_distance = {editable = true, path = "."}
 autopep8 = "*"
 pylint = "*"
 pycodestyle = "*"
 isort = "*"
-pipenv-setup = "*"
-mcd = {editable = true, path = "."}
-pytest-xdist = "*"
+rope = "*"
 pytest = "*"
-unittest2pytest = "*"
+autoflake = "*"
+twine = "*"
 
 [packages]
 librosa = "*"

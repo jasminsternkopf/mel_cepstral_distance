@@ -1,3 +1,104 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = [
+  "setuptools >= 40.9.0",
+  "wheel",
+]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "pronunciation-dictionary-utils"
+version = "0.0.1"
+description = "CLI and library to compute the Mel-Cepstral Distance of two WAV files based on the paper 'Mel-Cepstral Distance Measure for Objective Speech Quality Assessment' by Robert F. Kubichek."
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+authors = [
+  {email = "jasmin.sternkopf@mathematik.tu-chemnitz.de"},
+  {name = "Jasmin Sternkopf"},
+  {email = "stefan.taubert@posteo.me"},
+  {name = "Stefan Taubert"}
+]
+maintainers = [
+  {email = "stefan.taubert@posteo.me"},
+  {name = "Stefan Taubert"}
+]
+keywords = [
+  "TTS",
+  "Text-to-speech",
+  "Speech synthesis",
+  "MCD",
+  "Spectrogram",
+  "Divergence",
+  "Mel",
+  "Language",
+  "Linguistics"
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Operating System :: OS Independent",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX",
+  "Operating System :: POSIX :: BSD",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Unix",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+  "librosa",
+  "numpy",
+  "scipy",
+  "fastdtw",
+]
+
+[project.urls]
+Homepage = "https://github.com/jasminsternkopf/mel_cepstral_distance"
+Issues = "https://github.com/jasminsternkopf/mel_cepstral_distance/issues"
+
+[project.scripts]
+dict-cli = "mel_cepstral_distance_cli:run_prod"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = [
+  "mel_cepstral_distance",
+  "mel_cepstral_distance_cli"
+]
+exclude = [
+  "mel_cepstral_distance_tests",
+  "mel_cepstral_distance_debug"
+]
+namespaces = true
+
+[tool.pytest.ini_options]
+log_cli = true
+log_level = "DEBUG"
+testpaths = [
+  "src/mel_cepstral_distance_tests",
+]
+
+[tool.autopep8]
+indent-size = 2
+ignore = ["E121"]
+max_line_length = 100
+
+[tool.isort]
+line_length = 100
+indent = 2
+known_first_party = [
+  "mel_cepstral_distance",
+  "mel_cepstral_distance_cli"
+]
+known_third_party = [
+  "librosa",
+  "numpy",
+  "scipy",
+  "fastdtw"
+]

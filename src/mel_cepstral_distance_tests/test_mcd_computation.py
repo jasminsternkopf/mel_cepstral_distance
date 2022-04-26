@@ -1,6 +1,6 @@
 import librosa
 import numpy as np
-from mcd.mcd_computation import (get_mcd_between_mel_spectograms,
+from mel_cepstral_distance.mcd_computation import (get_mcd_between_mel_spectograms,
                                  get_mcd_between_wav_files)
 
 # region use_dtw=True

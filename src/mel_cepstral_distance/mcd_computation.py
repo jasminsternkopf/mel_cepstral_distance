@@ -1,4 +1,3 @@
-from logging import getLogger
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
@@ -11,10 +10,7 @@ from mel_cepstral_distance.core import (get_mcd_and_penalty_and_final_frame_numb
 from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
 
 
-def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 256, n_fft: int = 1024,
-                              window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True,
-                              norm: Optional[Any] = None, dtype: np.dtype = np.float64, n_mfcc: int = 16,
-                              use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
+def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True, norm: Optional[Any] = None, dtype: np.dtype = np.float64, n_mfcc: int = 16, use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
   """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
   be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the
   final number of frames that are used to compute the mel-cepstral distance.
@@ -158,11 +154,10 @@ def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, *, hop_length:
     fmax=None,
   )
 
-  return get_mcd_between_mel_spectograms(mel_spectogram1, mel_spectogram2, n_mfcc=n_mfcc, take_log=True, use_dtw=use_dtw)
+  return get_metrics_mels(mel_spectogram1, mel_spectogram2, n_mfcc=n_mfcc, take_log=True, use_dtw=use_dtw)
 
 
-def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, take_log: bool = True,
-                                    use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
+def get_metrics_mels(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
   """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
   be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the
   final number of frames that are used to compute the mel-cepstral distance.
@@ -205,7 +200,7 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, *, n_m
 
   if mel_1.shape[0] != mel_2.shape[0]:
     raise ValueError(
-      "The amout of mel-bands that were used to compute the corresponding mel-spectogram have to be equal!")
+      "The amount of mel-bands that were used to compute the corresponding mel-spectogram have to be equal!")
   mfccs_1 = get_mfccs_of_mel_spectogram(mel_1, n_mfcc, take_log)
   mfccs_2 = get_mfccs_of_mel_spectogram(mel_2, n_mfcc, take_log)
   mcd, penalty, final_frame_number = get_mcd_and_penalty_and_final_frame_number(

@@ -2,10 +2,10 @@ from logging import getLogger
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
-import librosa
 import numpy as np
 from fastdtw.fastdtw import fastdtw
-from librosa.feature import melspectrogram
+from librosa import load
+from librosa.feature import melspectrogram, mfcc
 from scipy.spatial.distance import euclidean
 
 from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
@@ -104,8 +104,8 @@ def get_mcd_between_wav_files(wav_file_1: Path, wav_file_2: Path, hop_length: in
     >>>   print("Audio 2 and audio 3 seem to share the same similarity to audio 1.")
     """
 
-  audio_1, sr_1 = librosa.load(wav_file_1, mono=True)
-  audio_2, sr_2 = librosa.load(wav_file_2, mono=True)
+  audio_1, sr_1 = load(wav_file_1, mono=True)
+  audio_2, sr_2 = load(wav_file_2, mono=True)
   return get_mcd_between_audios(
     audio_1=audio_1,
     audio_2=audio_2,
@@ -339,7 +339,7 @@ def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int, n_fft: int, 
 
 def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_log: bool = True) -> np.ndarray:
   mel_spectogram = np.log10(mel_spectogram) if take_log else mel_spectogram
-  mfccs = librosa.feature.mfcc(
+  mfccs = mfcc(
     S=mel_spectogram,
     n_mfcc=n_mfcc + 1,
     norm=None,

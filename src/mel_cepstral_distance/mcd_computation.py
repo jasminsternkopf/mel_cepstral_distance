@@ -302,15 +302,17 @@ def get_mcd_between_mel_spectograms(mel_1: np.ndarray, mel_2: np.ndarray, n_mfcc
     mfccs_1=mfccs_1, mfccs_2=mfccs_2, use_dtw=use_dtw)
   return mcd, penalty, final_frame_number
 
+from librosa.feature import melspectrogram
 
 def get_mfccs_of_audio(audio: np.ndarray, sr: int, hop_length: int, n_fft: int, window: str,
                        center: bool, n_mels: int, htk: bool, norm: Optional[Any], dtype: np.dtype,
                        n_mfcc: int) -> np.ndarray:
-  mel_spectogram = librosa.feature.melspectrogram(
+  mel_spectogram = melspectrogram(
     audio,
     sr=sr,
     hop_length=hop_length,
-    n_fft=n_fft, window=window,
+    n_fft=n_fft,
+    window=window,
     center=center,
     n_mels=n_mels,
     htk=htk,

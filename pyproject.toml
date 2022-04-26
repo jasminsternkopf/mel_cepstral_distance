@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pronunciation-dictionary-utils"
+name = "mel-cepstral-distance"
 version = "0.0.1"
 description = "CLI and library to compute the Mel-Cepstral Distance of two WAV files based on the paper 'Mel-Cepstral Distance Measure for Objective Speech Quality Assessment' by Robert F. Kubichek."
 readme = "README.md"
@@ -63,7 +63,7 @@ Homepage = "https://github.com/jasminsternkopf/mel_cepstral_distance"
 Issues = "https://github.com/jasminsternkopf/mel_cepstral_distance/issues"
 
 [project.scripts]
-dict-cli = "mel_cepstral_distance_cli:run_prod"
+mcd-cli = "mel_cepstral_distance_cli.cli:run_prod"
 
 [tool.setuptools.packages.find]
 where = ["src"]

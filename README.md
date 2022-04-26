@@ -1,33 +1,28 @@
 # Mel-Cepstral Distance
 
-![Python](https://img.shields.io/github/license/jasminsternkopf/mel_cepstral_distance)
-![Python](https://img.shields.io/badge/python-3.8-green.svg)
+[![PyPI](https://img.shields.io/pypi/v/mel-cepstral-distance.svg)](https://pypi.python.org/pypi/mel-cepstral-distance)
+[![PyPI](https://img.shields.io/pypi/pyversions/mel-cepstral-distance.svg)](https://pypi.python.org/pypi/mel-cepstral-distance)
+[![MIT](https://img.shields.io/github/license/jasminsternkopf/mel_cepstral_distance.svg)](LICENSE)
 
-Computation of the mel-cepstral distance of two WAV files based on the paper ["Mel-Cepstral Distance Measure for Objective Speech Quality Assessment"](https://ieeexplore.ieee.org/document/407206) by Robert F. Kubichek.
+CLI and library to compute the mel-cepstral distance of two WAV files based on the paper ["Mel-Cepstral Distance Measure for Objective Speech Quality Assessment"](https://ieeexplore.ieee.org/document/407206) by Robert F. Kubichek.
 
-## Usage as a Standalone Tool
-
-You need Python 3.8.
-
-Checkout this repository if you want to use the client:
+## Installation
 
 ```sh
-git clone https://github.com/jasminsternkopf/mel_cepstral_distance.git
-cd mel_cepstral_distance
-python3.8 -m pip install --user pipenv
-python3.8 -m pipenv sync
+pip install mel-cepstral-distance --user
 ```
 
-You can use the client for example via
+## CLI Usage
 
 ```sh
-cd src
-pipenv run python -m cli print_mcd -a="../examples/similar_audios/original.wav" -b="../examples/similar_audios/inferred.wav"
+mcd-cli print-mcd \
+  "../examples/similar_audios/original.wav" \
+  "../examples/similar_audios/inferred.wav"
 ```
 
 Output:
 
-```sh
+```text
 The mel-cepstral distance between the two WAV files is 8.613918026817169 and the penalty is 0.18923933209647492. This was computed using 539 frames.
 ```
 
@@ -48,16 +43,10 @@ There are some parameters with default values which can be specified the followi
 
 For more information about these parameters, have a look into the documentation of the method `get_mcd_between_wav_files`.
 
-## Usage as a Library
+## Usage as a library
 
-In the destination project run:
-
-```sh
-# if not already done:
-python3.8 -m pip install --user pipenv
-
-# add reference
-python3.8 -m pipenv install -e git+https://github.com/jasminsternkopf/mel_cepstral_distance.git@main#egg=mcd
+```py
+from mel_cepstral_distance import get_mcd_between_wav_files, get_mcd_between_audios, get_mcd_between_mel_spectograms
 ```
 
 ### Methods
@@ -83,3 +72,18 @@ All above methods return the mel-cepstral distance, the penalty and the final fr
 ## Contributing
 
 If you notice an error, please don't hesitate to open an issue.
+
+## Citation
+
+If you want to cite this repo, you can use this BibTeX-entry:
+
+```bibtex
+@misc{stmcd22,
+  author = {Sternkopf, Jasmin and Taubert, Stefan},
+  title = {mel-cepstral-distance},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/jasminsternkopf/mel_cepstral_distance}}
+}
+```

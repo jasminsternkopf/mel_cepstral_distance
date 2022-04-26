@@ -727,10 +727,6 @@
             "markers": "python_version >= '3.6'",
             "version": "==0.7.0"
         },
-        "mcd": {
-            "editable": true,
-            "path": "."
-        },
         "mel-cepstral-distance": {
             "editable": true,
             "path": "."
@@ -842,6 +838,10 @@
             "markers": "python_version >= '3.6'",
             "version": "==1.6.0"
         },
+        "pronunciation-dictionary-utils": {
+            "editable": true,
+            "path": "."
+        },
         "py": {
             "hashes": [
                 "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719",
@@ -948,7 +948,7 @@
                 "sha256:c50f3d253bc6a9bb9c79d61a26d510d74abdf1b16881260fab5edfc3edfb082f",
                 "sha256:ea74bc9dad9589d8eea3e3fd0b136d8bf6e428888955f215824c2894f0da8b47"
             ],
-            "markers": "python_version < '4' and python_full_version >= '3.6.3'",
+            "markers": "python_full_version >= '3.6.3' and python_full_version < '4.0.0'",
             "version": "==12.2.0"
         },
         "rope": {

@@ -27,7 +27,7 @@ WINDOWS = [
 
 
 def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
-  parser.description = "This program calculates the Mel-Cepstral Distance between two audio files. Both audio files need to have the same sampling rate."
+  parser.description = "This program calculates the Mel-Cepstral Distance and the penalty between two audio files. Both audio files need to have the same sampling rate."
   parser.add_argument("wav_1", type=Path, metavar="wav-1",
                       help="path to the first .wav file")
   parser.add_argument("wav_2", type=Path, metavar="wav-2",

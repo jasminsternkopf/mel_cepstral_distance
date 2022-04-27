@@ -59,6 +59,10 @@ Both methods return the mel-cepstral distance, the penalty and the final frame n
 - scipy >= 1.8.0
 - fastdtw >= 0.3.4
 
+## Roadmap
+
+- add command to process audio files from two distinct directories and output the result into a csv file
+
 ## Contributing
 
 If you notice an error, please don't hesitate to open an issue.

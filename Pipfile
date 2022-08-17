@@ -13,6 +13,8 @@ rope = "*"
 pytest = "*"
 autoflake = "*"
 twine = "*"
+build = "*"
+tox = "*"
 
 [packages]
 librosa = ">=0.9.1"

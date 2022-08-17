@@ -3,6 +3,8 @@
 [![PyPI](https://img.shields.io/pypi/v/mel-cepstral-distance.svg)](https://pypi.python.org/pypi/mel-cepstral-distance)
 [![PyPI](https://img.shields.io/pypi/pyversions/mel-cepstral-distance.svg)](https://pypi.python.org/pypi/mel-cepstral-distance)
 [![MIT](https://img.shields.io/github/license/jasminsternkopf/mel_cepstral_distance.svg)](https://github.com/jasminsternkopf/mel_cepstral_distance/blob/main/LICENSE)
+![PyPI](https://img.shields.io/pypi/implementation/mel-cepstral-distance.svg)
+[![PyPI](https://img.shields.io/github/commits-since/jasminsternkopf/mel_cepstral_distance/latest/main.svg)](https://github.com/jasminsternkopf/mel_cepstral_distance/compare/v0.0.2...main)
 
 CLI and library to compute the mel-cepstral distance of two WAV files based on the paper ["Mel-Cepstral Distance Measure for Objective Speech Quality Assessment"](https://ieeexplore.ieee.org/document/407206) by Robert F. Kubichek.
 
@@ -54,10 +56,10 @@ Both methods return the mel-cepstral distance, the penalty and the final frame n
 
 ### Dependencies
 
-- librosa >= 0.9.1
-- numpy >= 1.22.3
-- scipy >= 1.8.0
-- fastdtw >= 0.3.4
+- `librosa >= 0.9.1, < 0.1`
+- `numpy >= 1.22.3, < 1.24`
+- `scipy >= 1.8.0, < 1.10`
+- `fastdtw >= 0.3.4, < 0.4`
 
 ## Roadmap
 
@@ -66,6 +68,14 @@ Both methods return the mel-cepstral distance, the penalty and the final frame n
 ## Contributing
 
 If you notice an error, please don't hesitate to open an issue.
+
+## License
+
+MIT License
+
+## Acknowledgments
+
+Funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) – Project-ID 416228727 – CRC 1410
 
 ## Citation
 

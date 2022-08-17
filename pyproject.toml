@@ -1,16 +1,16 @@
 [project]
 name = "mel-cepstral-distance"
-version = "0.0.1"
+version = "0.0.2"
 description = "CLI and library to compute the Mel-Cepstral Distance of two WAV files based on the paper 'Mel-Cepstral Distance Measure for Objective Speech Quality Assessment' by Robert F. Kubichek."
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.8, <4"
 license = {text = "MIT"}
 authors = [
   {name = "Jasmin Sternkopf", email = "jasmin.sternkopf@mathematik.tu-chemnitz.de"},
-  {name = "Stefan Taubert", email = "stefan.taubert@posteo.me"}
+  {name = "Stefan Taubert", email = "pypi@stefantaubert.com"}
 ]
 maintainers = [
-  {name = "Stefan Taubert", email = "stefan.taubert@posteo.me"},
+  {name = "Stefan Taubert", email = "pypi@stefantaubert.com"},
 ]
 keywords = [
   "TTS",
@@ -39,18 +39,16 @@ classifiers = [
   "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.6",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-  "librosa>=0.9.1",
-  "numpy>=1.22.3",
-  "scipy>=1.8.0",
-  "fastdtw>=0.3.4",
+  "librosa >= 0.9.1, < 0.10",
+  "numpy >= 1.22.3, < 1.24",
+  "scipy >= 1.8.0, < 1.10",
+  "fastdtw >= 0.3.4, < 0.4",
 ]
 
 [project.urls]
@@ -97,6 +95,21 @@ known_third_party = [
   "scipy",
   "fastdtw"
 ]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{38,39,310}
+isolated_build = True
+
+[testenv]
+deps = 
+  pytest
+commands = 
+  pytest
+  mcd-cli
+  mcd-cli -v
+"""
 
 [build-system]
 requires = [

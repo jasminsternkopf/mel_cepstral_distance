@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: mel-cepstral-distance
+abstract: CLI and library to compute the mel-cepstral distance of two WAV files based on the paper "Mel-Cepstral Distance Measure for Objective Speech Quality Assessment" by Robert F. Kubichek.
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - email: jasmin.sternkopf@mathematik.tu-chemnitz.de
+    given-names: Jasmin
+    family-names: Sternkopf
+    affiliation: Chemnitz University of Technology
+  - email: github@stefantaubert.com
+    given-names: Stefan
+    family-names: Taubert
+    affiliation: Chemnitz University of Technology
+    orcid: 'https://orcid.org/0000-0002-4932-2874'
+    website: 'https://stefantaubert.com/'
+version: 0.0.2
+date-released: 2022-08-17
+license: MIT
+url: https://github.com/jasminsternkopf/mel_cepstral_distance
+doi: 10.5281/zenodo.7044405

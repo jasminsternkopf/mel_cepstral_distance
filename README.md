@@ -66,6 +66,15 @@ Both methods return the mel-cepstral distance, the penalty and the final frame n
 
 - add command to process audio files from two distinct directories and output the result into a csv file
 
+## Running the tests
+
+```sh
+git clone https://github.com/jasminsternkopf/mel_cepstral_distance.git
+cd mel_cepstral_distance
+pip install .
+pytest
+```
+
 ## Contributing
 
 If you notice an error, please don't hesitate to open an issue.

@@ -72,7 +72,8 @@ Both methods return the mel-cepstral distance, the penalty and the final frame n
 git clone https://github.com/jasminsternkopf/mel_cepstral_distance.git
 cd mel_cepstral_distance
 pip install .
-pytest
+pip install tox
+tox
 ```
 
 ## Contributing

@@ -9,7 +9,7 @@ from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
 
 
 def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_log: bool) -> np.ndarray:
-  mel_spectogram = np.log10(mel_spectogram) if take_log else mel_spectogram
+  mel_spectogram = np.log10(mel_spectogram+1e-9) if take_log else mel_spectogram
   mfccs = mfcc(
     S=mel_spectogram,
     n_mfcc=n_mfcc + 1,

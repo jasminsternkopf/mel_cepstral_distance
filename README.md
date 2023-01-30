@@ -121,6 +121,7 @@ We based some of the parameters on the two mentioned references and set the othe
     - Added logging to file
   - Changed:
     - Changed usage of CLI for wav files, now via `from-wav`
+    - Improved input validation for CLI
 - v0.0.2 (2022-08-17)
   - Added:
     - Added missing init files

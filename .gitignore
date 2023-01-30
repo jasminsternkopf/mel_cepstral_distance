@@ -141,3 +141,4 @@ inferred.wav
 original.wav
 deploy-PyPI.sh
 TODO.txt
+*_debug/

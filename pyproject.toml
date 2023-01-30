@@ -49,6 +49,8 @@ dependencies = [
   "numpy >= 1.22.3, < 1.24",
   "scipy >= 1.8.0, < 1.10",
   "fastdtw >= 0.3.4, < 0.4",
+  "pandas",
+  "tqdm",
 ]
 
 [project.urls]

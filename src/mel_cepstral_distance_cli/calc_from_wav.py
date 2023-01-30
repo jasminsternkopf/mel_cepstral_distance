@@ -1,6 +1,5 @@
 from argparse import ArgumentParser, Namespace
 from logging import Logger
-from pathlib import Path
 from typing import Callable
 
 import numpy as np

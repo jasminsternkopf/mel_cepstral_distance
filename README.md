@@ -118,6 +118,7 @@ We based some of the parameters on the two mentioned references and set the othe
 - v0.0.3 (unreleased)
   - Added:
     - Added MCD calculation for mel-spectrograms via CLI using `from-mel`
+    - Added batch processing for `from-mel` via `from-mel-batch`
     - Added logging to file
   - Changed:
     - Changed usage of CLI for wav files, now via `from-wav`

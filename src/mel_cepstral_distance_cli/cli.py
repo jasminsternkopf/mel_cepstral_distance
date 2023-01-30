@@ -13,12 +13,11 @@ from typing import Callable, List
 
 from mel_cepstral_distance_cli.argparse_helper import (get_optional, parse_path,
                                                        parse_positive_integer)
-from mel_cepstral_distance_cli.calc_from_mel import init_from_mel_parser
+from mel_cepstral_distance_cli.calc_from_mel import init_from_mel_batch_parser, init_from_mel_parser
 from mel_cepstral_distance_cli.calc_from_wav import init_from_wav_parser
 from mel_cepstral_distance_cli.logging_configuration import (configure_root_logger, get_file_logger,
                                                              init_and_return_loggers,
-                                                             try_init_file_buffer_logger,
-                                                             try_init_file_logger)
+                                                             try_init_file_buffer_logger)
 from mel_cepstral_distance_cli.types import ExecutionResult
 
 __APP_NAME = "mel-cepstral-distance"
@@ -34,8 +33,9 @@ def formatter(prog):
 
 
 def get_parsers():
-  yield "from-wav", "calculate MCD from .wav files", init_from_wav_parser
-  yield "from-mel", "calculate MCD from .npy files containing mel-spectrograms", init_from_mel_parser
+  yield "from-wav", "calculate MCD from two .wav files", init_from_wav_parser
+  yield "from-mel", "calculate MCD from two .npy files containing mel-spectrograms", init_from_mel_parser
+  yield "from-mel-batch", "calculate MCD from two folders containing .npy files containing mel-spectrograms", init_from_mel_batch_parser
 
 
 def _init_parser():

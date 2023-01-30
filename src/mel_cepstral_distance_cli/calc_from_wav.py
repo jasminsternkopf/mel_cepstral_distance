@@ -1,10 +1,12 @@
 from argparse import ArgumentParser, Namespace
+from logging import Logger
 from pathlib import Path
 from typing import Callable
 
 import numpy as np
 
 from mel_cepstral_distance.mcd_computation import get_metrics_wavs
+from mel_cepstral_distance_cli.types import ExecutionResult
 
 WINDOWS = [
   "hamming",
@@ -26,7 +28,7 @@ WINDOWS = [
 ]
 
 
-def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
+def init_from_wav_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.description = "This program calculates the Mel-Cepstral Distance and the penalty between two audio files. Both audio files need to have the same sampling rate."
   parser.add_argument("wav_1", type=Path, metavar="WAV1",
                       help="path to the first .wav-file")
@@ -50,10 +52,10 @@ def init_mcd_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.add_argument("-n", "--n-mfcc", type=int, metavar="NMFCC", default=16,
                       help="the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion according to Robert F. Kubichek)")
   parser.add_argument("-d", "--dtw", action="store_true", help="to compute the mel-cepstral distance, the number of frames has to be the same for both audios; if the parameter is specified, Dynamic Time Warping (DTW) is used to align both arrays containing the respective mel-cepstral coefficients, otherwise the array with less columns is filled with zeros from the right side.")
-  return print_mcd_dtw_from_paths
+  return calc_mcd_from_wav_ns
 
 
-def print_mcd_dtw_from_paths(ns: Namespace):
+def calc_mcd_from_wav_ns(ns: Namespace, logger: Logger, flogger: Logger) -> ExecutionResult:
   if not ns.wav_1.is_file():
     raise ValueError("Parameter 'WAV1': File not found!")
   if not ns.wav_2.is_file():
@@ -79,3 +81,4 @@ def print_mcd_dtw_from_paths(ns: Namespace):
   print(f"Mel-Cepstral Distance: {mcd}")
   print(f"Penalty: {penalty}")
   print(f"# Frames: {frames}")
+  return True

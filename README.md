@@ -112,3 +112,23 @@ We based some of the parameters on the two mentioned references and set the othe
 - `htk` -> False: by us
 - `norm` -> None: by us
 - `dtw` -> True: by us
+
+## Changelog
+
+- v0.0.3 (unreleased)
+  - Added:
+    - Added MCD calculation for mel-spectrograms via CLI using `from-mel`
+    - Added logging to file
+  - Changed:
+    - Changed usage of CLI for wav files, now via `from-wav`
+- v0.0.2 (2022-08-17)
+  - Added:
+    - Added missing init files
+    - Added pylint
+    - Added tox config
+    - Added acknowledgments
+  - Changed:
+    - updated dependency restrictions
+    - renamed some metavars
+- v0.0.1 (2022-04-26)
+  - Initial release

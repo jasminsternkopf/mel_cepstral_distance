@@ -37,7 +37,7 @@ def init_from_wav_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.add_argument("-f", "--n-fft", type=int, metavar="NFFT", default=1024,
                       help="`NFFT/2+1` is the number of rows of the spectrograms. `NFFT` should be a power of two to optimize the speed of the Fast Fourier Transformation (FFT)")
   parser.add_argument("-l", "--hop-length", type=int, metavar="LENGTH", default=256,
-                      help="specifies the number of audio samples between adjacent Short Term Fourier Transformation (STFT)-columns, therefore plays a role in computing the (mel-)spectograms which are needed to compute the mel-cepstral coefficients; for details see `librosa.core.stft`")
+                      help="specifies the number of audio samples between adjacent Short Term Fourier Transformation (STFT)-columns, therefore plays a role in computing the (mel-)spectrograms which are needed to compute the mel-cepstral coefficients; for details see `librosa.core.stft`")
   parser.add_argument("-w", "--window", type=str, metavar="NAME", choices=WINDOWS,
                       help="name of the window function; for details see: `scipy.signal.get_window`", default="hamming")
   parser.add_argument("-c", "--center", action="store_true",

@@ -6,7 +6,7 @@ from librosa import load
 from librosa.feature import melspectrogram
 
 from mel_cepstral_distance.core import (get_mcd_and_penalty_and_final_frame_number,
-                                        get_mfccs_of_mel_spectogram)
+                                        get_mfccs_of_mel_spectrogram)
 from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
 
 
@@ -25,11 +25,11 @@ def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 25
 
     hop_length : int > 0 [scalar]
         specifies the number of audio samples between adjacent Short Term Fourier Transformation-columns, therefore
-        plays a role in computing the (mel-)spectograms which are needed to compute the mel-cepstral coefficients
+        plays a role in computing the (mel-)spectrograms which are needed to compute the mel-cepstral coefficients
         See `librosa.core.stft`
 
     n_fft     : int > 0 [scalar]
-        `n_fft/2+1` is the number of rows of the spectograms. `n_fft` should be a power of two to optimize the speed of
+        `n_fft/2+1` is the number of rows of the spectrograms. `n_fft` should be a power of two to optimize the speed of
         the Fast Fourier Transformation
 
     window    : string, tuple, number, function, or np.ndarray [shape=(n_fft,)]
@@ -114,7 +114,7 @@ def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 25
     raise ValueError(
       "Parameters 'wav_file_1' and 'wav_file_2': The sampling rates need to be equal!")
 
-  mel_spectogram1 = melspectrogram(
+  mel_spectrogram1 = melspectrogram(
     y=audio_1,
     sr=sr_1,
     hop_length=hop_length,
@@ -134,7 +134,7 @@ def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 25
     fmax=None,
   )
 
-  mel_spectogram2 = melspectrogram(
+  mel_spectrogram2 = melspectrogram(
     y=audio_2,
     sr=sr_2,
     hop_length=hop_length,
@@ -154,7 +154,7 @@ def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 25
     fmax=None,
   )
 
-  return get_metrics_mels(mel_spectogram1, mel_spectogram2, n_mfcc=n_mfcc, take_log=True, use_dtw=use_dtw)
+  return get_metrics_mels(mel_spectrogram1, mel_spectrogram2, n_mfcc=n_mfcc, take_log=True, use_dtw=use_dtw)
 
 
 def get_metrics_mels(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
@@ -165,13 +165,13 @@ def get_metrics_mels(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, 
     Parameters
     ----------
     mel_1 	  : np.ndarray [shape=(k,n)]
-        first mel spectogram
+        first mel spectrogram
 
     mel_2     : np.ndarray [shape=(k,m)]
-        second mel spectogram
+        second mel spectrogram
 
     take_log     : bool
-        should be set to `False` if log10 already has been applied to the input mel spectograms, otherwise `True`
+        should be set to `False` if log10 already has been applied to the input mel spectrograms, otherwise `True`
 
     n_mfcc    : int > 0 [scalar]
         the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the
@@ -200,9 +200,9 @@ def get_metrics_mels(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, 
 
   if mel_1.shape[0] != mel_2.shape[0]:
     raise ValueError(
-      "The amount of mel-bands that were used to compute the corresponding mel-spectogram have to be equal!")
-  mfccs_1 = get_mfccs_of_mel_spectogram(mel_1, n_mfcc, take_log)
-  mfccs_2 = get_mfccs_of_mel_spectogram(mel_2, n_mfcc, take_log)
+      "The amount of mel-bands that were used to compute the corresponding mel-spectrogram have to be equal!")
+  mfccs_1 = get_mfccs_of_mel_spectrogram(mel_1, n_mfcc, take_log)
+  mfccs_2 = get_mfccs_of_mel_spectrogram(mel_2, n_mfcc, take_log)
   mcd, penalty, final_frame_number = get_mcd_and_penalty_and_final_frame_number(
     mfccs_1=mfccs_1, mfccs_2=mfccs_2, use_dtw=use_dtw)
   return mcd, penalty, final_frame_number

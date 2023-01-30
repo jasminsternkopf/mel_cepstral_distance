@@ -8,10 +8,10 @@ from scipy.spatial.distance import euclidean
 from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
 
 
-def get_mfccs_of_mel_spectogram(mel_spectogram: np.ndarray, n_mfcc: int, take_log: bool) -> np.ndarray:
-  mel_spectogram = np.log10(mel_spectogram) if take_log else mel_spectogram
+def get_mfccs_of_mel_spectrogram(mel_spectrogram: np.ndarray, n_mfcc: int, take_log: bool) -> np.ndarray:
+  mel_spectrogram = np.log10(mel_spectrogram) if take_log else mel_spectrogram
   mfccs = mfcc(
-    S=mel_spectogram,
+    S=mel_spectrogram,
     n_mfcc=n_mfcc + 1,
     norm=None,
     y=None,

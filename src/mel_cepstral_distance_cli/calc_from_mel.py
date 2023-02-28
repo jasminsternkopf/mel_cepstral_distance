@@ -152,7 +152,7 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
   if len(results) == 0:
     logger.info("No files found!")
     return True
-  logger.info(f"Found {len(results)} file pairs!")
+  logger.info(f"Found {len(results)} file pairs.")
 
   df = DataFrame.from_records(results)
 

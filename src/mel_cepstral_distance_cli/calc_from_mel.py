@@ -135,7 +135,6 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
     assert mel1.shape[0] == mel2.shape[0]
 
     results.append(OrderedDict((
-      # (col_pair, len(results) + 1),
       (col_mel1, npy_file_1.absolute()),
       (col_mel2, npy_file_2.absolute()),
       (col_name, npy_file_1.relative_to(ns.folder1).stem),
@@ -151,8 +150,9 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
     )))
 
   if len(results) == 0:
-    logger.addFilter("No files found!")
+    logger.info("No files found!")
     return True
+  logger.info(f"Found {len(results)} file pairs!")
 
   df = DataFrame.from_records(results)
 

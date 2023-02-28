@@ -1,9 +1,13 @@
 from argparse import ArgumentParser, Namespace
+from collections import OrderedDict
 from logging import Logger
 from pathlib import Path
 from typing import Any, Callable, Dict, List
+from typing import OrderedDict as ODType
+from typing import cast
 
 import numpy as np
+import pandas as pd
 from pandas import DataFrame
 from tqdm import tqdm
 
@@ -75,11 +79,26 @@ def init_from_mel_batch_parser(parser: ArgumentParser) -> Callable[[str, str], N
 
 
 def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -> ExecutionResult:
-
+  if not cast(Path, ns.output_csv).parent.is_dir():
+    logger.error(f"Folder \"{cast(Path, ns.output_csv).parent.absolute()}\" doesn't exist!")
+    return False
   all_files = get_all_files_in_all_subfolders(ns.folder1)
   all_wav_files = list(file for file in all_files if file.suffix.lower() == ".npy")
 
-  results: List[Dict[str, Any]] = []
+  col_mel1 = "MEL1"
+  col_mel2 = "MEL2"
+  col_name = "Name"
+  col_nmfccs = "#MFCCs"
+  col_log = "Take log?"
+  col_dtw = "Use DTW?"
+  col_bands = "#Mel-bands"
+  col_frames1 = "#Frames MEL1"
+  col_frames2 = "#Frames MEL2"
+  col_frames = "#Frames"
+  col_mcd = "MCD"
+  col_pen = "PEN"
+
+  results: List[ODType[str, Any]] = []
   all_successful = True
   for npy_file_1 in tqdm(all_wav_files, desc="Calculating", unit=" mel(s)"):
     npy_file_2: Path = ns.folder2 / npy_file_1.relative_to(ns.folder1)
@@ -115,39 +134,72 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
 
     assert mel1.shape[0] == mel2.shape[0]
 
-    results.append({
-      "MEL1": npy_file_1.absolute(),
-      "MEL2": npy_file_2.absolute(),
-      "N-MFCCs": ns.n_mfcc,
-      "Take log": ns.take_log,
-      "Use DTW": ns.dtw,
-      "# Mel bands": mel1.shape[0],
-      "# Frames MEL1": mel1.shape[1],
-      "# Frames MEL2": mel2.shape[1],
-      "# Frames": frames,
-      "MCD": mcd,
-      "Penalty": penalty,
-    })
+    results.append(OrderedDict((
+      # (col_pair, len(results) + 1),
+      (col_mel1, npy_file_1.absolute()),
+      (col_mel2, npy_file_2.absolute()),
+      (col_name, npy_file_1.relative_to(ns.folder1).stem),
+      (col_nmfccs, ns.n_mfcc),
+      (col_log, ns.take_log),
+      (col_dtw, ns.dtw),
+      (col_bands, mel1.shape[0]),
+      (col_frames1, mel1.shape[1]),
+      (col_frames2, mel2.shape[1]),
+      (col_frames, frames),
+      (col_mcd, mcd),
+      (col_pen, penalty),
+    )))
 
   if len(results) == 0:
     logger.addFilter("No files found!")
     return True
 
-  median_mcd = np.median([result["MCD"] for result in results])
-  min_mcd = min([result["MCD"] for result in results])
-  max_mcd = max([result["MCD"] for result in results])
-  median_pen = np.median([result["Penalty"] for result in results])
+  df = DataFrame.from_records(results)
 
-  logger.info(f"Count of file-pairs: {len(results)}")
-  logger.info(f"MCD Min: {min_mcd}")
-  logger.info(f"MCD Median: {median_mcd}")
-  logger.info(f"MCD Max: {max_mcd}")
-  logger.info(f"PEN Median: {median_pen}")
+  stats = []
+  stats.append(OrderedDict((
+    ("Metric", "MCD"),
+    ("Min", df[col_mcd].min()),
+    ("Max", df[col_mcd].max()),
+    ("Mean", df[col_mcd].mean()),
+    ("Median", df[col_mcd].median()),
+    ("SD", df[col_mcd].std()),
+    ("Kurtosis", df[col_mcd].kurtosis()),
+  )))
 
-  df = DataFrame(
-    data=[result.values() for result in results],
-    columns=results[0].keys(),
-  )
+  stats.append(OrderedDict((
+    ("Metric", "PEN"),
+    ("Min", df[col_pen].min()),
+    ("Max", df[col_pen].max()),
+    ("Mean", df[col_pen].mean()),
+    ("Median", df[col_pen].median()),
+    ("SD", df[col_pen].std()),
+    ("Kurtosis", df[col_pen].kurtosis()),
+  )))
+  stats_df = DataFrame.from_records(stats)
+
+  all_row = {
+      col_mel1: cast(Path, ns.folder1).absolute(),
+      col_mel2: cast(Path, ns.folder2).absolute(),
+      col_name: "ALL",
+      col_nmfccs: ns.n_mfcc,
+      col_log: ns.take_log,
+      col_dtw: ns.dtw,
+      col_bands: df[col_bands].mean(),
+      col_frames1: df[col_frames1].median(),
+      col_frames2: df[col_frames2].median(),
+      col_frames: df[col_frames].median(),
+      col_mcd: df[col_mcd].median(),
+      col_pen: df[col_pen].median(),
+  }
+  df = pd.concat([df, pd.DataFrame.from_records([all_row])], ignore_index=True)
+
+  with pd.option_context(
+    'display.max_rows', None,
+    'display.max_columns', None,
+    "display.width", None,
+    "display.precision", 4):
+    logger.info(f"Statistics:\n{stats_df.to_string(index=False)}")
 
   try:
     df.to_csv(ns.output_csv, index=False)

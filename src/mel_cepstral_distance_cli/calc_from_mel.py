@@ -160,21 +160,25 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
   stats.append(OrderedDict((
     ("Metric", "MCD"),
     ("Min", df[col_mcd].min()),
+    ("Q1", df[col_mcd].quantile(0.25)),
+    ("Q2", df[col_mcd].quantile(0.50)),
+    ("Q3", df[col_mcd].quantile(0.75)),
     ("Max", df[col_mcd].max()),
     ("Mean", df[col_mcd].mean()),
-    ("Median", df[col_mcd].median()),
     ("SD", df[col_mcd].std()),
-    ("Kurtosis", df[col_mcd].kurtosis()),
+    ("Kurt", df[col_mcd].kurtosis()),
   )))
-
+  
   stats.append(OrderedDict((
     ("Metric", "PEN"),
     ("Min", df[col_pen].min()),
+    ("Q1", df[col_pen].quantile(0.25)),
+    ("Q2", df[col_pen].quantile(0.50)),
+    ("Q3", df[col_pen].quantile(0.75)),
     ("Max", df[col_pen].max()),
     ("Mean", df[col_pen].mean()),
-    ("Median", df[col_pen].median()),
     ("SD", df[col_pen].std()),
-    ("Kurtosis", df[col_pen].kurtosis()),
+    ("Kurt", df[col_pen].kurtosis()),
   )))
   stats_df = DataFrame.from_records(stats)
 

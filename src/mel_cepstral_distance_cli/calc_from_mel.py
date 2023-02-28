@@ -2,7 +2,7 @@ from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
 from logging import Logger
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, List
 from typing import OrderedDict as ODType
 from typing import cast
 
@@ -168,7 +168,7 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
     ("SD", df[col_mcd].std()),
     ("Kurt", df[col_mcd].kurtosis()),
   )))
-  
+
   stats.append(OrderedDict((
     ("Metric", "PEN"),
     ("Min", df[col_pen].min()),

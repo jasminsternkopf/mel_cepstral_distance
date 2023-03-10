@@ -167,6 +167,7 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
     ("Mean", df[col_mcd].mean()),
     ("SD", df[col_mcd].std()),
     ("Kurt", df[col_mcd].kurtosis()),
+    ("Skew", df[col_mcd].skew()),
   )))
 
   stats.append(OrderedDict((
@@ -177,8 +178,9 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
     ("Q3", df[col_pen].quantile(0.75)),
     ("Max", df[col_pen].max()),
     ("Mean", df[col_pen].mean()),
-    ("SD", df[col_pen].std()),
-    ("Kurt", df[col_pen].kurtosis()),
+    ("SD", df[col_pen].std()), # σ
+    ("Kurt", df[col_pen].kurtosis()), # K
+    ("Skew", df[col_pen].skew()), # γ
   )))
   stats_df = DataFrame.from_records(stats)
 

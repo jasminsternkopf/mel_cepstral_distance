@@ -1,21 +1,15 @@
 from argparse import ArgumentParser, Namespace
-from collections import OrderedDict
 from logging import Logger
 from pathlib import Path
-from typing import Any, Callable, List
-from typing import OrderedDict as ODType
-from typing import cast
+from typing import Callable, cast
 
 import numpy as np
-import pandas as pd
-from pandas import DataFrame
-from tqdm import tqdm
 
 from mel_cepstral_distance import get_metrics_mels
+from mel_cepstral_distance.mcd_computation import get_metrics_mels_pairwise
 from mel_cepstral_distance_cli.argparse_helper import (parse_existing_directory,
                                                        parse_existing_file, parse_path,
                                                        parse_positive_integer)
-from mel_cepstral_distance_cli.helper import get_all_files_in_all_subfolders
 from mel_cepstral_distance_cli.types import ExecutionResult
 
 
@@ -82,130 +76,11 @@ def calc_mcd_from_mel_batch_ns(ns: Namespace, logger: Logger, flogger: Logger) -
   if not cast(Path, ns.output_csv).parent.is_dir():
     logger.error(f"Folder \"{cast(Path, ns.output_csv).parent.absolute()}\" doesn't exist!")
     return False
-  all_files = get_all_files_in_all_subfolders(ns.folder1)
-  all_wav_files = list(file for file in all_files if file.suffix.lower() == ".npy")
 
-  col_mel1 = "MEL1"
-  col_mel2 = "MEL2"
-  col_name = "Name"
-  col_nmfccs = "#MFCCs"
-  col_log = "Take log?"
-  col_dtw = "Use DTW?"
-  col_bands = "#Mel-bands"
-  col_frames1 = "#Frames MEL1"
-  col_frames2 = "#Frames MEL2"
-  col_frames = "#Frames"
-  col_mcd = "MCD"
-  col_pen = "PEN"
+  df, errors_on_files = get_metrics_mels_pairwise(
+    ns.folder1, ns.folder2, n_mfcc=ns.n_mfcc, take_log=ns.take_log, use_dtw=ns.dtw, silent=False)
 
-  results: List[ODType[str, Any]] = []
-  all_successful = True
-  for npy_file_1 in tqdm(all_wav_files, desc="Calculating", unit=" mel(s)"):
-    npy_file_2: Path = ns.folder2 / npy_file_1.relative_to(ns.folder1)
-    if not npy_file_2.is_file():
-      flogger.error(
-        f"No matching file for \"{npy_file_1.absolute()}\" at \"{npy_file_2.absolute()}\" found! Skipped.")
-      all_successful = False
-      continue
-
-    try:
-      mel1 = np.load(npy_file_1)
-    except Exception as ex:
-      logger.error(f"File \"{npy_file_1.absolute()}\" couldn't be loaded!")
-      logger.debug(ex)
-      all_successful = False
-      continue
-
-    try:
-      mel2 = np.load(npy_file_2)
-    except Exception as ex:
-      logger.error(f"File \"{npy_file_2.absolute()}\" couldn't be loaded!")
-      logger.debug(ex)
-      all_successful = False
-      continue
-
-    mcd, penalty, frames = get_metrics_mels(
-      mel1,
-      mel2,
-      n_mfcc=ns.n_mfcc,
-      take_log=ns.take_log,
-      use_dtw=ns.dtw,
-    )
-
-    assert mel1.shape[0] == mel2.shape[0]
-
-    results.append(OrderedDict((
-      (col_mel1, npy_file_1.absolute()),
-      (col_mel2, npy_file_2.absolute()),
-      (col_name, npy_file_1.relative_to(ns.folder1).stem),
-      (col_nmfccs, ns.n_mfcc),
-      (col_log, ns.take_log),
-      (col_dtw, ns.dtw),
-      (col_bands, mel1.shape[0]),
-      (col_frames1, mel1.shape[1]),
-      (col_frames2, mel2.shape[1]),
-      (col_frames, frames),
-      (col_mcd, mcd),
-      (col_pen, penalty),
-    )))
-
-  if len(results) == 0:
-    logger.info("No files found!")
-    return True
-  logger.info(f"Found {len(results)} file pairs.")
-
-  df = DataFrame.from_records(results)
-
-  stats = []
-  stats.append(OrderedDict((
-    ("Metric", "MCD"),
-    ("Min", df[col_mcd].min()),
-    ("Q1", df[col_mcd].quantile(0.25)),
-    ("Q2", df[col_mcd].quantile(0.50)),
-    ("Q3", df[col_mcd].quantile(0.75)),
-    ("Max", df[col_mcd].max()),
-    ("Mean", df[col_mcd].mean()),
-    ("SD", df[col_mcd].std()),
-    ("Kurt", df[col_mcd].kurtosis()),
-    ("Skew", df[col_mcd].skew()),
-  )))
-
-  stats.append(OrderedDict((
-    ("Metric", "PEN"),
-    ("Min", df[col_pen].min()),
-    ("Q1", df[col_pen].quantile(0.25)),
-    ("Q2", df[col_pen].quantile(0.50)),
-    ("Q3", df[col_pen].quantile(0.75)),
-    ("Max", df[col_pen].max()),
-    ("Mean", df[col_pen].mean()),
-    ("SD", df[col_pen].std()), # σ
-    ("Kurt", df[col_pen].kurtosis()), # K
-    ("Skew", df[col_pen].skew()), # γ
-  )))
-  stats_df = DataFrame.from_records(stats)
-
-  all_row = {
-      col_mel1: cast(Path, ns.folder1).absolute(),
-      col_mel2: cast(Path, ns.folder2).absolute(),
-      col_name: "ALL",
-      col_nmfccs: ns.n_mfcc,
-      col_log: ns.take_log,
-      col_dtw: ns.dtw,
-      col_bands: df[col_bands].mean(),
-      col_frames1: df[col_frames1].median(),
-      col_frames2: df[col_frames2].median(),
-      col_frames: df[col_frames].median(),
-      col_mcd: df[col_mcd].median(),
-      col_pen: df[col_pen].median(),
-  }
-  df = pd.concat([df, pd.DataFrame.from_records([all_row])], ignore_index=True)
-
-  with pd.option_context(
-    'display.max_rows', None,
-    'display.max_columns', None,
-    "display.width", None,
-    "display.precision", 4):
-    logger.info(f"Statistics:\n{stats_df.to_string(index=False)}")
+  all_successful = len(errors_on_files) == 0
 
   try:
     df.to_csv(ns.output_csv, index=False)

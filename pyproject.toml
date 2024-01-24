@@ -3,15 +3,13 @@ name = "mel-cepstral-distance"
 version = "0.0.2"
 description = "CLI and library to compute the Mel-Cepstral Distance of two WAV files based on the paper 'Mel-Cepstral Distance Measure for Objective Speech Quality Assessment' by Robert F. Kubichek."
 readme = "README.md"
-requires-python = ">=3.8, <3.11"
-license = {text = "MIT"}
+requires-python = ">=3.8, <3.12"
+license = { text = "MIT" }
 authors = [
-  {name = "Jasmin Sternkopf", email = "jasmin.sternkopf@mathematik.tu-chemnitz.de"},
-  {name = "Stefan Taubert", email = "pypi@stefantaubert.com"}
+  { name = "Jasmin Sternkopf", email = "jasmin.sternkopf@mathematik.tu-chemnitz.de" },
+  { name = "Stefan Taubert", email = "pypi@stefantaubert.com" },
 ]
-maintainers = [
-  {name = "Stefan Taubert", email = "pypi@stefantaubert.com"},
-]
+maintainers = [{ name = "Stefan Taubert", email = "pypi@stefantaubert.com" }]
 keywords = [
   "TTS",
   "Text-to-speech",
@@ -26,7 +24,7 @@ keywords = [
   "Divergence",
   "Distortion",
   "Language",
-  "Linguistics"
+  "Linguistics",
 ]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
@@ -42,15 +40,16 @@ classifiers = [
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-  "librosa >= 0.9.1, < 0.10",
-  "numpy >= 1.22.3, < 1.24",
-  "scipy >= 1.8.0, < 1.10",
-  "fastdtw >= 0.3.4, < 0.4",
+  "librosa >= 0.9.1",
+  "numpy >= 1.22.3",
+  "scipy >= 1.8.0",
+  "fastdtw >= 0.3.4",
   "pandas",
-  "tqdm",
+  "tqdm>=4.63.0",
 ]
 
 [project.urls]
@@ -62,22 +61,14 @@ mcd-cli = "mel_cepstral_distance_cli.cli:run_prod"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = [
-  "mel_cepstral_distance",
-  "mel_cepstral_distance_cli"
-]
-exclude = [
-  "mel_cepstral_distance_tests",
-  "mel_cepstral_distance_debug"
-]
+include = ["mel_cepstral_distance", "mel_cepstral_distance_cli"]
+exclude = ["mel_cepstral_distance_tests", "mel_cepstral_distance_debug"]
 namespaces = true
 
 [tool.pytest.ini_options]
 log_cli = true
 log_level = "DEBUG"
-testpaths = [
-  "src/mel_cepstral_distance_tests",
-]
+testpaths = ["src/mel_cepstral_distance_tests"]
 
 [tool.autopep8]
 indent-size = 2
@@ -87,21 +78,13 @@ max_line_length = 100
 [tool.isort]
 line_length = 100
 indent = 2
-known_first_party = [
-  "mel_cepstral_distance",
-  "mel_cepstral_distance_cli"
-]
-known_third_party = [
-  "librosa",
-  "numpy",
-  "scipy",
-  "fastdtw"
-]
+known_first_party = ["mel_cepstral_distance", "mel_cepstral_distance_cli"]
+known_third_party = ["librosa", "numpy", "scipy", "fastdtw"]
 
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{38,39,310}
+envlist = py{38,39,310,311}
 isolated_build = True
 
 [testenv]
@@ -114,8 +97,5 @@ commands =
 """
 
 [build-system]
-requires = [
-  "setuptools >= 40.9.0",
-  "wheel",
-]
+requires = ["setuptools >= 40.9.0", "wheel"]
 build-backend = "setuptools.build_meta"

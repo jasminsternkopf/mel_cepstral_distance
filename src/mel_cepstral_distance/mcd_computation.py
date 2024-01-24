@@ -1,17 +1,26 @@
+from collections import OrderedDict
+from logging import getLogger
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional
+from typing import OrderedDict as ODType
+from typing import Tuple, cast
 
 import numpy as np
+import pandas as pd
 from librosa import load
 from librosa.feature import melspectrogram
+from pandas import DataFrame
+from tqdm import tqdm
 
 from mel_cepstral_distance.core import (get_mcd_and_penalty_and_final_frame_number,
                                         get_mfccs_of_mel_spectrogram)
+from mel_cepstral_distance.helper import get_all_files_in_all_subfolders
 from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
 
 
 def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True, norm: Optional[Any] = None, dtype: np.dtype = np.float64, n_mfcc: int = 16, use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
-  """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
+  """
+  Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
   be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the
   final number of frames that are used to compute the mel-cepstral distance.
 
@@ -98,7 +107,7 @@ def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 25
     >>>   print("Audio 3 seems to be more similar to audio 1 than audio 2.")
     >>> else:
     >>>   print("Audio 2 and audio 3 seem to share the same similarity to audio 1.")
-    """
+  """
 
   if not wav_file_1.is_file():
     raise ValueError("Parameter 'wav_file_1': File not found!")
@@ -158,7 +167,8 @@ def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 25
 
 
 def get_metrics_mels(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:
-  """Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
+  """
+  Compute the mel-cepstral distance between two audios, a penalty term accounting for the number of frames that has to
   be added to equal both frame numbers or to align the mel-cepstral coefficients if using Dynamic Time Warping and the
   final number of frames that are used to compute the mel-cepstral distance.
 
@@ -196,7 +206,7 @@ def get_metrics_mels(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, 
     final_frame_number : int
         the number of columns of one of the mel-cepstral coefficient arrays after applying Dynamic Time Warping or
         filling up with zeros
-    """
+  """
 
   if mel_1.shape[0] != mel_2.shape[0]:
     raise ValueError(
@@ -206,3 +216,137 @@ def get_metrics_mels(mel_1: np.ndarray, mel_2: np.ndarray, *, n_mfcc: int = 16, 
   mcd, penalty, final_frame_number = get_mcd_and_penalty_and_final_frame_number(
     mfccs_1=mfccs_1, mfccs_2=mfccs_2, use_dtw=use_dtw)
   return mcd, penalty, final_frame_number
+
+
+def get_metrics_mels_pairwise(folder1: Path, folder2: Path, *, n_mfcc: int = 16, take_log: bool = True, use_dtw: bool = True, silent: bool = False) -> Tuple[pd.DataFrame, List[Path]]:
+  """
+  Compute the mel-cepstral distance between mel spectrograms (*.npy) pairs that have the same relative path.
+  """
+  logger = getLogger(__name__)
+
+  all_files = get_all_files_in_all_subfolders(folder1)
+  all_wav_files = list(file for file in all_files if file.suffix.lower() == ".npy")
+
+  col_mel1 = "MEL1"
+  col_mel2 = "MEL2"
+  col_name = "Name"
+  col_nmfccs = "#MFCCs"
+  col_log = "Take log?"
+  col_dtw = "Use DTW?"
+  col_bands = "#Mel-bands"
+  col_frames1 = "#Frames MEL1"
+  col_frames2 = "#Frames MEL2"
+  col_frames = "#Frames"
+  col_mcd = "MCD"
+  col_pen = "PEN"
+
+  results: List[ODType[str, Any]] = []
+  errors_on_files = []
+  for npy_file_1 in tqdm(all_wav_files, desc="Calculating", unit=" mel(s)", disable=silent):
+    npy_file_2: Path = folder2 / npy_file_1.relative_to(folder1)
+    if not npy_file_2.is_file():
+      logger.error(
+        f"No matching file for \"{npy_file_1.absolute()}\" at \"{npy_file_2.absolute()}\" found! Skipped.")
+      errors_on_files.append(npy_file_1)
+      continue
+
+    try:
+      mel1 = np.load(npy_file_1)
+    except Exception as ex:
+      logger.error(f"File \"{npy_file_1.absolute()}\" couldn't be loaded!")
+      logger.debug(ex)
+      errors_on_files.append(npy_file_1)
+      continue
+
+    try:
+      mel2 = np.load(npy_file_2)
+    except Exception as ex:
+      logger.error(f"File \"{npy_file_2.absolute()}\" couldn't be loaded!")
+      logger.debug(ex)
+      errors_on_files.append(npy_file_2)
+      continue
+
+    mcd, penalty, frames = get_metrics_mels(
+      mel1,
+      mel2,
+      n_mfcc=n_mfcc,
+      take_log=take_log,
+      use_dtw=use_dtw,
+    )
+
+    assert mel1.shape[0] == mel2.shape[0]
+
+    results.append(OrderedDict((
+      (col_mel1, npy_file_1.absolute()),
+      (col_mel2, npy_file_2.absolute()),
+      (col_name, npy_file_1.relative_to(folder1).stem),
+      (col_nmfccs, n_mfcc),
+      (col_log, take_log),
+      (col_dtw, use_dtw),
+      (col_bands, mel1.shape[0]),
+      (col_frames1, mel1.shape[1]),
+      (col_frames2, mel2.shape[1]),
+      (col_frames, frames),
+      (col_mcd, mcd),
+      (col_pen, penalty),
+    )))
+
+  if len(results) == 0:
+    logger.info("No files found!")
+    return True
+  logger.info(f"Found {len(results)} file pairs.")
+
+  df = DataFrame.from_records(results)
+
+  stats = []
+  stats.append(OrderedDict((
+    ("Metric", "MCD"),
+    ("Min", df[col_mcd].min()),
+    ("Q1", df[col_mcd].quantile(0.25)),
+    ("Q2", df[col_mcd].quantile(0.50)),
+    ("Q3", df[col_mcd].quantile(0.75)),
+    ("Max", df[col_mcd].max()),
+    ("Mean", df[col_mcd].mean()),
+    ("SD", df[col_mcd].std()),
+    ("Kurt", df[col_mcd].kurtosis()),
+    ("Skew", df[col_mcd].skew()),
+  )))
+
+  stats.append(OrderedDict((
+    ("Metric", "PEN"),
+    ("Min", df[col_pen].min()),
+    ("Q1", df[col_pen].quantile(0.25)),
+    ("Q2", df[col_pen].quantile(0.50)),
+    ("Q3", df[col_pen].quantile(0.75)),
+    ("Max", df[col_pen].max()),
+    ("Mean", df[col_pen].mean()),
+    ("SD", df[col_pen].std()),  # σ
+    ("Kurt", df[col_pen].kurtosis()),  # K
+    ("Skew", df[col_pen].skew()),  # γ
+  )))
+  stats_df = DataFrame.from_records(stats)
+
+  all_row = {
+      col_mel1: cast(Path, folder1).absolute(),
+      col_mel2: cast(Path, folder2).absolute(),
+      col_name: "ALL",
+      col_nmfccs: n_mfcc,
+      col_log: take_log,
+      col_dtw: use_dtw,
+      col_bands: df[col_bands].mean(),
+      col_frames1: df[col_frames1].median(),
+      col_frames2: df[col_frames2].median(),
+      col_frames: df[col_frames].median(),
+      col_mcd: df[col_mcd].median(),
+      col_pen: df[col_pen].median(),
+  }
+  df = pd.concat([df, pd.DataFrame.from_records([all_row])], ignore_index=True)
+
+  with pd.option_context(
+    'display.max_rows', None,
+    'display.max_columns', None,
+    "display.width", None,
+    "display.precision", 4):
+    logger.info(f"Statistics:\n{stats_df.to_string(index=False)}")
+
+  return df, errors_on_files

@@ -113,6 +113,10 @@ We based some of the parameters on the two mentioned references and set the othe
 - `norm` -> None: by us
 - `dtw` -> True: by us
 
+### Why is Python 3.12 not supported?
+
+The dependency `numba` is currently not available for Python 3.12.
+
 ## Changelog
 
 - v0.0.3 (unreleased)

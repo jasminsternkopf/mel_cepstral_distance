@@ -1,6 +1,6 @@
 import argparse
 import codecs
-from argparse import ArgumentTypeError
+from argparse import ArgumentParser, ArgumentTypeError
 from functools import partial
 from pathlib import Path
 from typing import Callable, List, Optional, TypeVar
@@ -13,6 +13,15 @@ class ConvertToSetAction(argparse._StoreAction):
     if values is not None:
       values = set(values)
     super().__call__(parser, namespace, values, option_string)
+
+
+def add_dtw_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("-d", "--dtw", action="store_true", help="to compute the mel-cepstral distance, the number of frames has to be the same for both audios; if the parameter is specified, Dynamic Time Warping (DTW) is used to align both arrays containing the respective mel-cepstral coefficients, otherwise the array with less columns is filled with zeros from the right side.")
+
+
+def add_n_mfcc_argument(parser: ArgumentParser) -> None:
+  parser.add_argument("-n", "--n-mfcc", type=parse_positive_integer, metavar="N-MFCC", default=16,
+                      help="the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion according to Robert F. Kubichek)")
 
 
 def parse_codec(value: str) -> str:

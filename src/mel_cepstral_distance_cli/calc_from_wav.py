@@ -5,7 +5,8 @@ from typing import Callable
 import numpy as np
 
 from mel_cepstral_distance.mcd_computation import get_metrics_wavs
-from mel_cepstral_distance_cli.argparse_helper import parse_existing_file, parse_positive_integer
+from mel_cepstral_distance_cli.argparse_helper import (add_dtw_argument, add_n_mfcc_argument,
+                                                       parse_existing_file, parse_positive_integer)
 from mel_cepstral_distance_cli.types import ExecutionResult
 
 WINDOWS = [
@@ -49,9 +50,8 @@ def init_from_wav_parser(parser: ArgumentParser) -> Callable[[str, str], None]:
   parser.add_argument("-o", "--norm", type=int, choices=[None, 1], metavar="NORM", default=None,
                       help="determines if and how the mel weights are normalized: if 1, divide the triangular mel weights by the width of the mel band (area normalization); otherwise, leave all the triangles aiming for a peak value of 1.0")
   #parser.add_argument("-y", "--dtype", type=np.dtype, default=np.float64,help="data type of the spectrograms")
-  parser.add_argument("-n", "--n-mfcc", type=parse_positive_integer, metavar="NMFCC", default=16,
-                      help="the number of mel-cepstral coefficients that are computed per frame, starting with the first coefficient (the zeroth coefficient is omitted, as it is primarily affected by system gain rather than system distortion according to Robert F. Kubichek)")
-  parser.add_argument("-d", "--dtw", action="store_true", help="to compute the mel-cepstral distance, the number of frames has to be the same for both audios; if the parameter is specified, Dynamic Time Warping (DTW) is used to align both arrays containing the respective mel-cepstral coefficients, otherwise the array with less columns is filled with zeros from the right side.")
+  add_n_mfcc_argument(parser)
+  add_dtw_argument(parser)
   return calc_mcd_from_wav_ns
 
 

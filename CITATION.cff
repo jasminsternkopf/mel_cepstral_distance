@@ -16,8 +16,8 @@ authors:
     affiliation: Chemnitz University of Technology
     orcid: 'https://orcid.org/0000-0002-4932-2874'
     website: 'https://stefantaubert.com/'
-version: 0.0.2
-date-released: 2022-08-17
+version: 0.0.3
+date-released: 2024-01-25
 license: MIT
 url: https://github.com/jasminsternkopf/mel_cepstral_distance
-doi: 10.5281/zenodo.7044405
+doi: 10.5281/zenodo.10567255

@@ -11,8 +11,7 @@ from tempfile import gettempdir
 from time import perf_counter
 from typing import Callable, List
 
-from mel_cepstral_distance_cli.argparse_helper import (get_optional, parse_path,
-                                                       parse_positive_integer)
+from mel_cepstral_distance_cli.argparse_helper import get_optional, parse_path
 from mel_cepstral_distance_cli.calc_from_mel import init_from_mel_batch_parser, init_from_mel_parser
 from mel_cepstral_distance_cli.calc_from_wav import init_from_wav_parser
 from mel_cepstral_distance_cli.logging_configuration import (configure_root_logger, get_file_logger,
@@ -25,7 +24,7 @@ __APP_NAME = "mel-cepstral-distance"
 __version__ = version(__APP_NAME)
 
 INVOKE_HANDLER_VAR = "invoke_handler"
-DEFAULT_LOGGING_BUFFER_CAP = 1000000000
+DEFAULT_LOGGING_BUFFER_CAP = 0
 
 
 def formatter(prog):
@@ -35,7 +34,7 @@ def formatter(prog):
 def get_parsers():
   yield "from-wav", "calculate MCD from two .wav files", init_from_wav_parser
   yield "from-mel", "calculate MCD from two .npy files containing mel-spectrograms", init_from_mel_parser
-  yield "from-mel-batch", "calculate MCD from two folders containing .npy files containing mel-spectrograms", init_from_mel_batch_parser
+  yield "from-mel-batch", "calculate MCD from two folders containing mel-spectrograms (.npy)", init_from_mel_batch_parser
 
 
 def _init_parser():
@@ -57,8 +56,8 @@ def _init_parser():
     logging_group = method_parser.add_argument_group("logging arguments")
     logging_group.add_argument("--log", type=get_optional(parse_path), metavar="FILE",
                                nargs="?", const=None, help="path to write the log", default=default_log_path)
-    logging_group.add_argument("--buffer-capacity", type=parse_positive_integer, default=DEFAULT_LOGGING_BUFFER_CAP,
-                               metavar="CAPACITY", help="amount of logging lines that should be buffered before they are written to the log-file")
+    # logging_group.add_argument("--buffer-capacity", type=parse_positive_integer, default=DEFAULT_LOGGING_BUFFER_CAP,
+    #                            metavar="CAPACITY", help="amount of logging lines that should be buffered before they are written to the log-file")
     logging_group.add_argument("--debug", action="store_true",
                                help="include debugging information in log")
 
@@ -114,7 +113,7 @@ def parse_args(args: List[str]) -> None:
   if log_to_file:
     # log_to_file = try_init_file_logger(ns.log, local_debugging or ns.debug)
     log_to_file = try_init_file_buffer_logger(
-      ns.log, local_debugging or ns.debug, ns.buffer_capacity)
+      ns.log, local_debugging or ns.debug, DEFAULT_LOGGING_BUFFER_CAP)
     if not log_to_file:
       root_logger.warning("Logging to file is not possible.")
 
@@ -160,10 +159,9 @@ def parse_args(args: List[str]) -> None:
 
   duration = perf_counter() - start
   flogger.debug(f"Total duration (s): {duration}")
-  if log_to_file:
+  if log_to_file and ns.debug:
     # path not encapsulated in "" because it is only console out
     root_logger.info(f"Log: \"{ns.log.absolute()}\"")
-    root_logger.info("Writing remaining buffered log lines...")
   sys.exit(exit_code)
 
 

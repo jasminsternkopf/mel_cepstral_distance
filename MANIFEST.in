@@ -1,0 +1,11 @@
+graft examples/
+include LICENSE
+include CHANGELOG.md
+include README.md
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include setup.cfg
+include pyproject.toml
+include Pipfile
+include CITATION.cff
+include pylintrc

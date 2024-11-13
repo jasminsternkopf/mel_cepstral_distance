@@ -1,6 +1,6 @@
 import numpy as np
 
-from mel_cepstral_distance.computation import get_w_n_m, get_X_kn
+from mel_cepstral_distance.computation import get_w_n_m, get_X_kn_fast
 
 
 def test_mel_spectrogram_dimension_fix():
@@ -11,7 +11,7 @@ def test_mel_spectrogram_dimension_fix():
   low_freq = 0
   high_freq = 4000
   w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
-  result = get_X_kn(X_km, w_n_m)
+  result = get_X_kn_fast(X_km, w_n_m)
 
   # Expected shape based on X_km shape and N
   expected_shape = (X_km.shape[0], N)
@@ -30,7 +30,7 @@ def test_single_mel_band():
   low_freq = 0
   high_freq = 8000
   w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
-  result = get_X_kn(X_km, w_n_m)
+  result = get_X_kn_fast(X_km, w_n_m)
 
   # Expected shape
   expected_shape = (X_km.shape[0], N)
@@ -49,7 +49,7 @@ def test_large_values_input():
   low_freq = 0
   high_freq = 22050
   w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
-  result = get_X_kn(X_km, w_n_m)
+  result = get_X_kn_fast(X_km, w_n_m)
 
   # Ensure the shape is correct
   expected_shape = (X_km.shape[0], N)
@@ -71,7 +71,7 @@ def test_zero_input():
   low_freq = 0
   high_freq = 8000
   w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
-  result = get_X_kn(X_km, w_n_m)
+  result = get_X_kn_fast(X_km, w_n_m)
 
   # Check that the result is -inf due to log10 of zero input energy (with small eps added)
   assert np.all(result <= 0), "Expected all values to be <= 0 due to log10 of zero input energy."
@@ -85,7 +85,7 @@ def test_high_and_low_frequencies():
   low_freq = 100
   high_freq = 12000
   w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
-  result = get_X_kn(X_km, w_n_m)
+  result = get_X_kn_fast(X_km, w_n_m)
 
   # Expected shape
   expected_shape = (X_km.shape[0], N)

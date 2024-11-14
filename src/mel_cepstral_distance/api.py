@@ -204,7 +204,7 @@ def compare_audio_files(audioA: Path, audioB: Path, *, sample_rate: int = 8000, 
   logger.info(f"Calculated {D} MFCCs")
 
   if align_target == "mfcc":
-    logger.info("-- Aligning mel-spectrograms --")
+    logger.info("-- Aligning MFCCs --")
     MC_X_ik, MC_Y_ik, penalty = align_frames_2d(MC_X_ik, MC_Y_ik, aligning)
 
   logger.info("-- Calculating Mel Cepstral Distance --")

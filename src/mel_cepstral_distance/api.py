@@ -199,9 +199,9 @@ def compare_audio_files(audioA: Path, audioB: Path, *, sample_rate: int = 8000, 
 
   # Calculate Mel Cepstral Coefficients
   logger.info("-- Calculating Mel Cepstral Coefficients --")
-  MC_X_ik = get_MC_X_ik_fast(X_kn_A, D)
-  MC_Y_ik = get_MC_X_ik_fast(X_kn_B, D)
-  logger.info(f"Calculated {D} MFCCs")
+  MC_X_ik = get_MC_X_ik_fast(X_kn_A, N)
+  MC_Y_ik = get_MC_X_ik_fast(X_kn_B, N)
+  logger.info(f"Calculated {N} MFCCs")
 
   if align_target == "mfcc":
     logger.info("-- Aligning MFCCs --")

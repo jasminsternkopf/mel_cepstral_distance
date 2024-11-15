@@ -3,6 +3,8 @@ from typing import Literal
 
 import numpy as np
 
+from mel_cepstral_distance.helper import get_hz_points, hz_to_mel, mel_to_hz
+
 
 def get_average_MCD(MCD_k: np.ndarray) -> float:
   """" Calculates the average Mel Cepstral Distance (MCD) over all frames """
@@ -108,6 +110,7 @@ def get_X_kn_fast(X_km: np.ndarray, w_n_m: np.ndarray) -> np.ndarray:
   return X_kn
 
 
+
 def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: float) -> np.ndarray:
   ''' calculates mel filterbank '''
   # N: number of mel bands
@@ -118,10 +121,7 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: 
   assert low_freq < high_freq
   assert low_freq >= 0
 
-  mel_low = hz_to_mel(low_freq)
-  mel_high = hz_to_mel(high_freq)
-  mel_points = np.linspace(mel_low, mel_high, N + 2)
-  hz_points = np.array([mel_to_hz(mel_point) for mel_point in mel_points])
+  hz_points = get_hz_points(low_freq, high_freq, N)
 
   bins = np.floor((n_fft + 1) * hz_points / sample_rate).astype(int)
 
@@ -141,16 +141,6 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: 
     w_n_m[n - 1, center:right] = (right - np.arange(center, right)) / (right - center)
 
   return w_n_m
-
-
-def hz_to_mel(hz: float) -> float:
-  assert hz >= 0, f"Expected positive frequency, but got {hz}"
-  return 2595 * np.log10(1 + hz / 700.0)
-
-
-def mel_to_hz(mel: float) -> float:
-  assert mel >= 0, f"Expected positive mel value, but got {mel}"
-  return 700 * (10**(mel / 2595) - 1)
 
 
 def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window: Literal["hamming", "hanning"]) -> np.ndarray:
@@ -181,7 +171,6 @@ def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window:
   stft = np.fft.rfft(windowed_frames * win, n=n_fft)
   magnitude_spec = np.abs(stft)
   return magnitude_spec
-
 
 
 def get_penalty(former_length_1: int, former_length_2: int, length_after_equaling: int) -> float:

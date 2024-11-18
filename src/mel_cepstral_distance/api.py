@@ -9,12 +9,12 @@ from scipy.io import wavfile
 from mel_cepstral_distance.alignment import align_MC, align_X_km, align_X_kn
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik_fast, get_MCD_k_fast,
                                                get_w_n_m, get_X_km, get_X_kn_fast)
-from mel_cepstral_distance.helper import (ms_to_samples, norm_audio, remove_silence_MC_X_ik,
+from mel_cepstral_distance.helper import (ms_to_samples, norm_audio_signal, remove_silence_MC_X_ik,
                                           remove_silence_rms, remove_silence_X_km,
                                           remove_silence_X_kn, resample_if_necessary)
 
 
-def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_sig: bool = True) -> Tuple[float, float]:
+def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
   """
   - silence is removed before alignment
   - high freq is max sr/2
@@ -61,12 +61,12 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000
   sr1, signalA = wavfile.read(audio_A)
   sr2, signalB = wavfile.read(audio_B)
 
-  if norm_sig:
-    signalA = norm_audio(signalA)
-    signalB = norm_audio(signalB)
-
   signalA = resample_if_necessary(signalA, sr1, sample_rate)
   signalB = resample_if_necessary(signalB, sr2, sample_rate)
+
+  if norm_audio:
+    signalA = norm_audio_signal(signalA)
+    signalB = norm_audio_signal(signalB)
 
   win_len_samples = ms_to_samples(win_len, sample_rate)
 

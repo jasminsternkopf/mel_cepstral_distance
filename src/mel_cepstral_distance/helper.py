@@ -195,7 +195,7 @@ def detect_non_silence_in_MC_X_ik(MC_X_ik: np.ndarray, silence_threshold: float)
   return non_silent_frame_indices
 
 
-def norm_audio(audio: np.ndarray) -> np.ndarray:
+def norm_audio_signal(audio: np.ndarray) -> np.ndarray:
   audio = audio / np.max(np.abs(audio))
   return audio
 

@@ -15,12 +15,12 @@ from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik_fast
 from mel_cepstral_distance.helper import (detect_non_silence_in_MC_X_ik, detect_non_silence_in_X_km,
                                           detect_non_silence_in_X_kn,
                                           extract_extract_frames_from_signal, fill_with_zeros_2d,
-                                          ms_to_samples, norm_audio, plot_MC_X_ik, plot_X_km,
+                                          ms_to_samples, norm_audio_signal, plot_MC_X_ik, plot_X_km,
                                           plot_X_kn, remove_silence_rms, resample_if_necessary,
                                           samples_to_ms, stack_images_vertically)
 
 
-def compare_audio_files_extended(audioA: Path, audioB: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "spec", silence_threshold_A: float = 0.05, silence_threshold_B: float = 0.05, norm_sig: bool = True, custom_save_dir: Optional[Path] = None) -> None:
+def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "spec", silence_threshold_A: float = 0.05, silence_threshold_B: float = 0.05, norm_sig: bool = True, custom_save_dir: Optional[Path] = None) -> None:
   logger = getLogger(__name__)
   start = perf_counter()
 
@@ -49,18 +49,18 @@ def compare_audio_files_extended(audioA: Path, audioB: Path, *, sample_rate: int
 
   step += 1
   print(f"-- ({step}) Reading audio files --")
-  sr1, signalA = wavfile.read(audioA)
-  print(f"A -> Read '{audioA}' with sampling rate {sr1} in {perf_counter() - start:.2f}s")
+  sr1, signalA = wavfile.read(audio_A)
+  print(f"A -> Read '{audio_A}' with sampling rate {sr1} in {perf_counter() - start:.2f}s")
 
   p = perf_counter()
-  sr2, signalB = wavfile.read(audioB)
-  print(f"B -> Read '{audioB}' with sampling rate {sr2} in {perf_counter() - p:.2f}s")
+  sr2, signalB = wavfile.read(audio_B)
+  print(f"B -> Read '{audio_B}' with sampling rate {sr2} in {perf_counter() - p:.2f}s")
 
   if norm_sig:
     step += 1
     print(f"-- ({step}) Normalizing audio signals --")
-    signalA = norm_audio(signalA)
-    signalB = norm_audio(signalB)
+    signalA = norm_audio_signal(signalA)
+    signalB = norm_audio_signal(signalB)
     wavfile.write(log_dir / f"{step}_A_normalized.wav", sr1, signalA)
     wavfile.write(log_dir / f"{step}_B_normalized.wav", sr2, signalB)
   else:

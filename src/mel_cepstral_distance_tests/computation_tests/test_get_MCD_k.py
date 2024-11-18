@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from mel_cepstral_distance.computation import get_MCD_k
 

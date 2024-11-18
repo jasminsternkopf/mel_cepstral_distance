@@ -1,9 +1,8 @@
-from logging import getLogger
 from typing import Literal
 
 import numpy as np
 
-from mel_cepstral_distance.helper import get_hz_points, hz_to_mel, mel_to_hz
+from mel_cepstral_distance.helper import get_hz_points
 
 
 def get_average_MCD(MCD_k: np.ndarray) -> float:
@@ -60,7 +59,7 @@ def get_MC_X_ik(X_kn: np.ndarray, M: int) -> np.ndarray:
 def get_MC_X_ik_fast(X_kn: np.ndarray, M: int) -> np.ndarray:
   """
   Calculates the mel cepstrum of the mel spectrogram
-  returns mel cepstrum with shape (M, len(X_kn))
+  returns mel cepstrum with shape (M, #frames)
   """
   # K: total frame count
   # M: number of cepstral coefficients
@@ -98,7 +97,7 @@ def get_X_kn(X_km: np.ndarray, w_n_m: np.ndarray) -> np.ndarray:
 def get_X_kn_fast(X_km: np.ndarray, w_n_m: np.ndarray) -> np.ndarray:
   """
   Calculates the mel spectrogram of the spectrogram
-  returns mel spectrogram with shape (len(X_km), N)
+  returns mel spectrogram with shape (#frames, N)
   """
   assert X_km.shape[1] == w_n_m.shape[1], f"Expected {w_n_m.shape[1]} columns, but got {X_km.shape[1]}"
 
@@ -108,7 +107,6 @@ def get_X_kn_fast(X_km: np.ndarray, w_n_m: np.ndarray) -> np.ndarray:
 
   X_kn = np.log10(log_inner + np.finfo(float).eps)
   return X_kn
-
 
 
 def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: float) -> np.ndarray:
@@ -123,12 +121,12 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: 
 
   hz_points = get_hz_points(low_freq, high_freq, N)
 
-  bins = np.floor((n_fft + 1) * hz_points / sample_rate).astype(int)
+  # logger = getLogger(__name__)
+  # logger.info(f"Frequency ranges of mel-bins ({low_freq}Hz - {high_freq}Hz):")
+  # for i in range(N + 1):
+  #   logger.info(f"Mel-band {i}: {hz_points[i]:.2f}Hz - {hz_points[i + 1]:.2f}Hz")
 
-  logger = getLogger(__name__)
-  logger.info(f"Frequency ranges of mel-bins ({low_freq}Hz - {high_freq}Hz):")
-  for i in range(N + 1):
-    logger.info(f"Mel-band {i}: {hz_points[i]:.2f}Hz - {hz_points[i + 1]:.2f}Hz")
+  bins = np.floor((n_fft + 1) * hz_points / sample_rate).astype(int)
 
   w_n_m = np.zeros((N, int(n_fft / 2 + 1)))
 
@@ -146,8 +144,9 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: 
 def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window: Literal["hamming", "hanning"]) -> np.ndarray:
   """ 
   Short-Time Fourier Transform (STFT) 
-  returns magnitude spectrogram with shape (len(S), n_fft // 2 + 1)
+  returns magnitude spectrogram with shape (#frames, n_fft // 2 + 1)
   """
+  assert window in ["hamming", "hanning"]
   K = len(S)
   windowed_frames = np.array([
     S[k:k + win_len]
@@ -171,9 +170,3 @@ def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window:
   stft = np.fft.rfft(windowed_frames * win, n=n_fft)
   magnitude_spec = np.abs(stft)
   return magnitude_spec
-
-
-def get_penalty(former_length_1: int, former_length_2: int, length_after_equaling: int) -> float:
-  # lies between 0 and 1, the smaller the better
-  penalty = 2 - (former_length_1 + former_length_2) / length_after_equaling
-  return penalty

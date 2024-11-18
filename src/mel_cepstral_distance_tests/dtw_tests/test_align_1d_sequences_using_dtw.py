@@ -1,6 +1,6 @@
 import numpy as np
 
-from mel_cepstral_distance.dtw import align_1d_sequences_using_dtw
+from mel_cepstral_distance.alignment import align_1d_sequences_using_dtw
 
 
 def test_identical_sequences():

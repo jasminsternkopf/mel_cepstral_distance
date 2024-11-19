@@ -11,13 +11,14 @@ from scipy.io import wavfile
 
 from mel_cepstral_distance.alignment import align_2d_sequences_using_dtw
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik_fast, get_MCD_k_fast,
-                                               get_penalty, get_w_n_m, get_X_km, get_X_kn_fast)
+                                               get_w_n_m, get_X_km, get_X_kn_fast)
 from mel_cepstral_distance.helper import (detect_non_silence_in_MC_X_ik, detect_non_silence_in_X_km,
                                           detect_non_silence_in_X_kn,
                                           extract_extract_frames_from_signal, fill_with_zeros_2d,
-                                          ms_to_samples, norm_audio_signal, plot_MC_X_ik, plot_X_km,
-                                          plot_X_kn, remove_silence_rms, resample_if_necessary,
-                                          samples_to_ms, stack_images_vertically)
+                                          get_penalty, ms_to_samples, norm_audio_signal,
+                                          plot_MC_X_ik, plot_X_km, plot_X_kn, remove_silence_rms,
+                                          resample_if_necessary, samples_to_ms,
+                                          stack_images_vertically)
 
 
 def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "spec", silence_threshold_A: float = 0.05, silence_threshold_B: float = 0.05, norm_sig: bool = True, custom_save_dir: Optional[Path] = None) -> None:

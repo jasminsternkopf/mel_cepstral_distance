@@ -14,7 +14,7 @@ from mel_cepstral_distance.helper import (ms_to_samples, norm_audio_signal, remo
                                           remove_silence_X_kn, resample_if_necessary)
 
 
-def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
+def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
   """
   - silence is removed before alignment
   - high freq is max sr/2
@@ -26,7 +26,7 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000
   if remove_silence not in ["no", "sig", "spec", "mel", "mfcc"]:
     raise ValueError("remove_silence must be 'no', 'sig', 'spec', 'mel' or 'mfcc'")
 
-  if not 0 < sample_rate:
+  if sample_rate is not None and not 0 < sample_rate:
     raise ValueError("sample_rate must be > 0")
 
   if not n_fft > 0:
@@ -40,6 +40,15 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000
 
   if window not in ["hamming", "hanning"]:
     raise ValueError("window must be 'hamming' or 'hanning'")
+
+  sr1, signalA = wavfile.read(audio_A)
+  sr2, signalB = wavfile.read(audio_B)
+
+  if sample_rate is None:
+    sample_rate = min(sr1, sr2)
+
+  signalA = resample_if_necessary(signalA, sr1, sample_rate)
+  signalB = resample_if_necessary(signalB, sr2, sample_rate)
 
   n_fft_samples = ms_to_samples(n_fft, sample_rate)
   n_fft_is_two_power = n_fft_samples & (n_fft_samples - 1) == 0
@@ -57,12 +66,6 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000
     else:
       assert win_len > n_fft
       logger.warning(f"padding windows to n_fft ({n_fft}ms)")
-
-  sr1, signalA = wavfile.read(audio_A)
-  sr2, signalB = wavfile.read(audio_B)
-
-  signalA = resample_if_necessary(signalA, sr1, sample_rate)
-  signalB = resample_if_necessary(signalB, sr2, sample_rate)
 
   if norm_audio:
     signalA = norm_audio_signal(signalA)
@@ -99,7 +102,7 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000
   return mean_mcd_over_all_k, res_penalty
 
 
-def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate: int = 8000, n_fft: float = 32, low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate: int = 8000, n_fft: float = 32, low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
   if not X_km_A.shape[1] == X_km_B.shape[1]:
     raise ValueError("both spectrograms must have the same number of n_fft bins")
 
@@ -120,10 +123,14 @@ def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate:
       raise ValueError(
         "cannot remove silence from MFCCs after both spectrograms were aligned")
 
-  if high_freq > sample_rate / 2:
-    raise ValueError("high_freq must be <= sample_rate / 2")
+  if high_freq is not None:
+    if not 0 < high_freq <= sample_rate / 2:
+      raise ValueError(f"high_freq must be in (0, sample_rate/2], i.e., (0, {sample_rate//2}]")
+  else:
+    high_freq = sample_rate // 2
+
   if not 0 <= low_freq < high_freq:
-    raise ValueError("low_freq must be in [0, high_freq)")
+    raise ValueError(f"low_freq must be in [0, high_freq), i.e., [0, {high_freq})")
 
   if not n_fft > 0:
     raise ValueError("n_fft must be > 0")
@@ -161,7 +168,7 @@ def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate:
 
   mean_mcd_over_all_k, res_penalty = compare_mel_spectrograms(
     X_kn_A, X_kn_B,
-    N=N, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
+    s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
   )
 
   if align_target == "spec":
@@ -173,7 +180,7 @@ def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate:
   return mean_mcd_over_all_k, penalty
 
 
-def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
   if not X_kn_A.shape[1] == X_kn_B.shape[1]:
     raise ValueError("both mel-spectrograms must have the same number of mel-bands")
 
@@ -187,8 +194,9 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, N: int =
     raise ValueError(
         "cannot remove silence from MFCCs after both mel-spectrograms were aligned")
 
+  N = X_kn_A.shape[1]
   if D > N:
-    raise ValueError("D must be <= N")
+    raise ValueError(f"D must be <= number of mel-bands ({N})")
 
   if remove_silence == "mel":
     if silence_threshold_A is None:

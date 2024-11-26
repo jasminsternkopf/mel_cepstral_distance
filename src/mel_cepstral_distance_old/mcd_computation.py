@@ -12,9 +12,9 @@ from librosa.feature import melspectrogram
 from pandas import DataFrame
 from tqdm import tqdm
 
-from mel_cepstral_distance_old.core import (get_mcd_and_penalty_and_final_frame_number,
-                                        get_mfccs_of_mel_spectrogram)
 from mel_cepstral_distance.helper import get_all_files_in_all_subfolders
+from mel_cepstral_distance_old.core import (get_mcd_and_penalty_and_final_frame_number,
+                                            get_mfccs_of_mel_spectrogram)
 from mel_cepstral_distance_old.types import Frames, MelCepstralDistance, Penalty
 
 

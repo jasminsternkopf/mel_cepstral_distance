@@ -1,13 +1,10 @@
-import os
-from pathlib import Path
-from typing import Generator, Tuple, Union
+from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from fastdtw.fastdtw import fastdtw
 from PIL import Image, ImageOps
-from scipy.signal import resample
 
 from mel_cepstral_distance.helper import amp_to_mag, energy_to_bel, get_hz_points, mag_to_energy
 

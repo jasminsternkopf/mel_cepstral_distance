@@ -4,10 +4,10 @@ from typing import Callable
 
 import numpy as np
 
-from mel_cepstral_distance_old.mcd_computation import get_metrics_wavs
 from mel_cepstral_distance_cli.argparse_helper import (add_dtw_argument, add_n_mfcc_argument,
                                                        parse_existing_file, parse_positive_integer)
 from mel_cepstral_distance_cli.types import ExecutionResult
+from mel_cepstral_distance_old.mcd_computation import get_metrics_wavs
 
 WINDOWS = [
   "hamming",

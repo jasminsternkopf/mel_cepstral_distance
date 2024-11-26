@@ -7,11 +7,11 @@ import numpy as np
 import pandas as pd
 
 from mel_cepstral_distance import get_metrics_mels
-from mel_cepstral_distance_old.mcd_computation import get_metrics_mels_pairwise
 from mel_cepstral_distance_cli.argparse_helper import (add_dtw_argument, add_n_mfcc_argument,
                                                        parse_existing_directory,
                                                        parse_existing_file, parse_path)
 from mel_cepstral_distance_cli.types import ExecutionResult
+from mel_cepstral_distance_old.mcd_computation import get_metrics_mels_pairwise
 
 
 def init_from_mel_parser(parser: ArgumentParser) -> Callable[[str, str], None]:

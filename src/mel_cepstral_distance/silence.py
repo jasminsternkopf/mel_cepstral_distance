@@ -1,12 +1,6 @@
-import os
-from pathlib import Path
-from typing import Generator, Tuple, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-from PIL import Image
-from scipy.signal import resample
 
 from mel_cepstral_distance.helper import amp_to_mag
 

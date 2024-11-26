@@ -1,8 +1,5 @@
-import os
-from pathlib import Path
-from typing import Generator, Tuple, Union
+from typing import Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 from scipy.signal import resample

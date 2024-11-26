@@ -7,7 +7,7 @@ from librosa import load
 from librosa.feature import melspectrogram
 
 from mel_cepstral_distance_old.mcd_computation import get_metrics_mels_pairwise
-from mel_cepstral_distance_tests.test_get_metrics_wavs import *
+from mel_cepstral_distance_old.tests.test_get_metrics_wavs import *
 
 
 def test_empty_dirs():

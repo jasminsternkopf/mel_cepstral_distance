@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 from mel_cepstral_distance.api import compare_audio_files
@@ -15,6 +14,3 @@ def test_component():
   )
   assert mcd == 9.078626838893001
   assert pen == 0.18829516539440205
-
-
-test_component()

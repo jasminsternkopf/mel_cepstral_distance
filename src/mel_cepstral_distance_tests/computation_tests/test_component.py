@@ -72,6 +72,3 @@ def test_example_audio_sim():
   mean_mcd_over_all_k = get_average_MCD(MCD_k)
   print(mean_mcd_over_all_k)
   assert np.allclose(mean_mcd_over_all_k, 16.564609750230623)
-
-
-test_example_audio_sim()

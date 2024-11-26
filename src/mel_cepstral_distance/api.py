@@ -9,9 +9,9 @@ from scipy.io import wavfile
 from mel_cepstral_distance.alignment import align_MC, align_X_km, align_X_kn
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
                                                get_X_km, get_X_kn)
-from mel_cepstral_distance.helper import (ms_to_samples, norm_audio_signal, remove_silence_MC_X_ik,
-                                          remove_silence_rms, remove_silence_X_km,
-                                          remove_silence_X_kn, resample_if_necessary)
+from mel_cepstral_distance.helper import ms_to_samples, norm_audio_signal, resample_if_necessary
+from mel_cepstral_distance.silence import (remove_silence_MC_X_ik, remove_silence_rms,
+                                           remove_silence_X_km, remove_silence_X_kn)
 
 
 def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:

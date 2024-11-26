@@ -14,7 +14,7 @@ from mel_cepstral_distance.helper import (ms_to_samples, norm_audio_signal, remo
                                           remove_silence_X_kn, resample_if_necessary)
 
 
-def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
+def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
   """
   - silence is removed before alignment
   - high freq is max sr/2
@@ -96,13 +96,13 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
 
   mean_mcd_over_all_k, res_penalty = compare_amplitude_spectrograms(
     X_km_A, X_km_B,
-    sample_rate=sample_rate, n_fft=n_fft, low_freq=low_freq, high_freq=high_freq, N=N, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
+    sample_rate=sample_rate, n_fft=n_fft, fmin=fmin, fmax=fmax, N=N, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
   )
 
   return mean_mcd_over_all_k, res_penalty
 
 
-def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.complex128], *, sample_rate: int = 8000, n_fft: float = 32, low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.complex128], *, sample_rate: int = 8000, n_fft: float = 32, fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
   if not X_km_A.shape[1] == X_km_B.shape[1]:
     raise ValueError("both spectrograms must have the same number of n_fft bins")
 
@@ -123,14 +123,14 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
       raise ValueError(
         "cannot remove silence from MFCCs after both spectrograms were aligned")
 
-  if high_freq is not None:
-    if not 0 < high_freq <= sample_rate / 2:
-      raise ValueError(f"high_freq must be in (0, sample_rate/2], i.e., (0, {sample_rate//2}]")
+  if fmax is not None:
+    if not 0 < fmax <= sample_rate / 2:
+      raise ValueError(f"fmax must be in (0, sample_rate/2], i.e., (0, {sample_rate//2}]")
   else:
-    high_freq = sample_rate // 2
+    fmax = sample_rate // 2
 
-  if not 0 <= low_freq < high_freq:
-    raise ValueError(f"low_freq must be in [0, high_freq), i.e., [0, {high_freq})")
+  if not 0 <= fmin < fmax:
+    raise ValueError(f"fmin must be in [0, fmax), i.e., [0, {fmax})")
 
   if not n_fft > 0:
     raise ValueError("n_fft must be > 0")
@@ -165,7 +165,7 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
     aligning = "pad"
 
   # Mel-Bank - Shape: (N, #Frames)
-  w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, low_freq, high_freq)
+  w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, fmin, fmax)
 
   # Mel-Spectrogram - Shape: (#Frames, #N)
   X_kn_A = get_X_kn(X_km_A, w_n_m)

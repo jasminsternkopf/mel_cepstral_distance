@@ -47,20 +47,20 @@ def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window:
   return X_km
 
 
-def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: float) -> np.ndarray:
+def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) -> np.ndarray:
   ''' calculates a normed Mel filter bank '''
   # N: number of mel bands
   assert sample_rate > 0
   assert N > 0
   assert n_fft > 0
-  assert high_freq <= sample_rate / 2
-  assert low_freq < high_freq
-  assert low_freq >= 0
+  assert fmax <= sample_rate / 2
+  assert fmin < fmax
+  assert fmin >= 0
 
-  hz_points = get_hz_points(low_freq, high_freq, N)
+  hz_points = get_hz_points(fmin, fmax, N)
 
   # logger = getLogger(__name__)
-  # logger.info(f"Frequency ranges of mel-bins ({low_freq}Hz - {high_freq}Hz):")
+  # logger.info(f"Frequency ranges of mel-bins ({fmin}Hz - {fmax}Hz):")
   # for i in range(N + 1):
   #   logger.info(f"Mel-band {i}: {hz_points[i]:.2f}Hz - {hz_points[i + 1]:.2f}Hz")
 

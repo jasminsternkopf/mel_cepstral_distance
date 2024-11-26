@@ -20,7 +20,7 @@ from mel_cepstral_distance_analysis.helper import (extract_frames_from_signal, p
                                                    plot_X_km, plot_X_kn, stack_images_vertically)
 
 
-def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", low_freq: int = 0, high_freq: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "spec", silence_threshold_A: float = 0.05, silence_threshold_B: float = 0.05, norm_sig: bool = True, custom_save_dir: Optional[Path] = None) -> None:
+def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "spec", silence_threshold_A: float = 0.05, silence_threshold_B: float = 0.05, norm_sig: bool = True, custom_save_dir: Optional[Path] = None) -> None:
   logger = getLogger(__name__)
   start = perf_counter()
 
@@ -244,7 +244,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
   step += 1
   print(f"-- ({step}) Calculating Mel-filterbank --")
   # Mel-Bank - Shape: (N, #Frames)
-  w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, low_freq, high_freq)
+  w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, fmin, fmax)
 
   step += 1
   print(f"-- ({step}) Calculating Mel-spectrograms --")
@@ -260,14 +260,14 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
   print(f"B -> Min: {X_kn_B.min()}, Mean: {X_kn_B.mean()}, Max: {X_kn_B.max()}")
 
   np.save(log_dir / f"{step}_A_mel_spectrogram.npy", X_kn_A)
-  fig = plot_X_kn(X_kn_A, low_freq, high_freq, "A (input)")
+  fig = plot_X_kn(X_kn_A, fmin, fmax, "A (input)")
   path_mel_spectrogram_A = log_dir / f"{step}_A_mel_spectrogram.png"
   fig.savefig(path_mel_spectrogram_A)
   plt.close()
   stack_pipeline_A.append(path_mel_spectrogram_A)
 
   np.save(log_dir / f"{step}_B_mel_spectrogram.npy", X_kn_B)
-  fig = plot_X_kn(X_kn_B, low_freq, high_freq, "B (input)")
+  fig = plot_X_kn(X_kn_B, fmin, fmax, "B (input)")
   path_mel_spectrogram_B = log_dir / f"{step}_B_mel_spectrogram.png"
   fig.savefig(path_mel_spectrogram_B)
   plt.close()
@@ -297,7 +297,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       plt.close()
 
       np.save(log_dir / f"{step}_3_A_mel_spectrogram_silence_removed.npy", X_kn_A)
-      fig = plot_X_kn(X_kn_A, low_freq, high_freq, "A (silence removed)")
+      fig = plot_X_kn(X_kn_A, fmin, fmax, "A (silence removed)")
       fig.savefig(log_dir / f"{step}_3_A_mel_spectrogram_silence_removed.png")
       plt.close()
       stack_pipeline_A.append(log_dir / f"{step}_3_A_mel_spectrogram_silence_removed.png")
@@ -330,7 +330,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       plt.close()
 
       np.save(log_dir / f"{step}_3_B_mel_spectrogram_silence_removed.npy", X_kn_B)
-      fig = plot_X_kn(X_kn_B, low_freq, high_freq, "B (silence removed)")
+      fig = plot_X_kn(X_kn_B, fmin, fmax, "B (silence removed)")
       fig.savefig(log_dir / f"{step}_3_B_mel_spectrogram_silence_removed.png")
       plt.close()
       stack_pipeline_B.append(log_dir / f"{step}_3_B_mel_spectrogram_silence_removed.png")
@@ -353,12 +353,12 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
     np.save(log_dir / f"{step}_A_mel_spectrogram_aligned.npy", X_kn_A)
     np.save(log_dir / f"{step}_B_mel_spectrogram_aligned.npy", X_kn_B)
 
-    fig = plot_X_kn(X_kn_A, low_freq, high_freq, "A (aligned)")
+    fig = plot_X_kn(X_kn_A, fmin, fmax, "A (aligned)")
     fig.savefig(log_dir / f"{step}_A_mel_spectrogram_aligned.png")
     plt.close()
     stack_pipeline_A.append(log_dir / f"{step}_A_mel_spectrogram_aligned.png")
 
-    fig = plot_X_kn(X_kn_B, low_freq, high_freq, "B (aligned)")
+    fig = plot_X_kn(X_kn_B, fmin, fmax, "B (aligned)")
     fig.savefig(log_dir / f"{step}_B_mel_spectrogram_aligned.png")
     plt.close()
     stack_pipeline_B.append(log_dir / f"{step}_B_mel_spectrogram_aligned.png")
@@ -415,7 +415,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       fig.savefig(log_dir / f"{step}_2_A_spectrogram_silence_removed.png")
       plt.close()
 
-      fig = plot_X_kn(X_kn_A[non_silent_frames_A], low_freq, high_freq, "A (silence removed)")
+      fig = plot_X_kn(X_kn_A[non_silent_frames_A], fmin, fmax, "A (silence removed)")
       fig.savefig(log_dir / f"{step}_3_A_mel_spectrogram_silence_removed.png")
       plt.close()
 
@@ -451,7 +451,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       fig.savefig(log_dir / f"{step}_2_B_spectrogram_silence_removed.png")
       plt.close()
 
-      fig = plot_X_kn(X_kn_B[non_silent_frames_B], low_freq, high_freq, "B (silence removed)")
+      fig = plot_X_kn(X_kn_B[non_silent_frames_B], fmin, fmax, "B (silence removed)")
       fig.savefig(log_dir / f"{step}_3_B_mel_spectrogram_silence_removed.png")
       plt.close()
 

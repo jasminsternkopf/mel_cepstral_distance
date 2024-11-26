@@ -43,7 +43,7 @@ def plot_X_km(X_km: npt.NDArray[np.complex128], sample_rate: int, title: str):
   return fig
 
 
-def plot_X_kn(X_kn: np.ndarray, low_freq: int, high_freq: int, title: str):
+def plot_X_kn(X_kn: np.ndarray, fmin: int, fmax: int, title: str):
   """
   Plots the given Mel spectrogram.
 
@@ -55,7 +55,7 @@ def plot_X_kn(X_kn: np.ndarray, low_freq: int, high_freq: int, title: str):
   n_frames, n_mel_bins = X_kn.shape
 
   time_axis = np.linspace(0, n_frames + 1, n_frames + 1)
-  mel_freqs = get_hz_points(low_freq, high_freq, n_mel_bins)[1:]
+  mel_freqs = get_hz_points(fmin, fmax, n_mel_bins)[1:]
 
   # X_kn is in Bel
   X_kn_db = X_kn * 10

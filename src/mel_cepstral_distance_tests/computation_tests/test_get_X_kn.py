@@ -33,9 +33,9 @@ def test_imag_part():
   sample_rate = 8000
   N = 2
   n_fft = 4  # adjust n_fft to ensure dimensions match
-  low_freq = 0
-  high_freq = 4000
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 0
+  fmax = 4000
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   result = get_X_kn(X_km, w_n_m)
 
   # Expected shape based on X_km shape and N
@@ -54,9 +54,9 @@ def test_mel_spectrogram_dimension_fix():
   sample_rate = 8000
   N = 2
   n_fft = 8  # adjust n_fft to ensure dimensions match
-  low_freq = 0
-  high_freq = 4000
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 0
+  fmax = 4000
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   result = get_X_kn(X_km, w_n_m)
 
   # Expected shape based on X_km shape and N
@@ -75,9 +75,9 @@ def test_single_mel_band():
   sample_rate = 16000
   N = 1
   n_fft = 2
-  low_freq = 0
-  high_freq = 8000
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 0
+  fmax = 8000
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   result = get_X_kn(X_km, w_n_m)
 
   # Expected shape
@@ -96,9 +96,9 @@ def test_large_values_input():
   sample_rate = 44100
   N = 3
   n_fft = 4
-  low_freq = 0
-  high_freq = 22050
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 0
+  fmax = 22050
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   result = get_X_kn(X_km, w_n_m)
 
   # Ensure the shape is correct
@@ -120,9 +120,9 @@ def test_zero_input():
   sample_rate = 16000
   N = 2
   n_fft = 4
-  low_freq = 0
-  high_freq = 8000
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 0
+  fmax = 8000
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   result = get_X_kn(X_km, w_n_m)
 
   # Check that the result is -inf due to log10 of zero input energy (with small eps added)
@@ -132,14 +132,14 @@ def test_zero_input():
   assert np.allclose(result, get_X_kn_from_paper(X_km, w_n_m))
 
 
-def test_high_and_low_frequencies():
+def test_high_and_fminuencies():
   X_km = np.random.rand(12, 5)
   sample_rate = 48000
   N = 4
   n_fft = 8
-  low_freq = 100
-  high_freq = 12000
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 100
+  fmax = 12000
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   result = get_X_kn(X_km, w_n_m)
 
   # Expected shape

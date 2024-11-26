@@ -22,9 +22,9 @@ def test_compontent():
   X_km_2 = get_X_km(S2, n_fft, win_len, hop_length, window)
   sample_rate = 22050
   N = 40
-  low_freq = 0
-  high_freq = sample_rate / 2
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 0
+  fmax = sample_rate / 2
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   assert w_n_m.shape[1] == X_km_1.shape[1]
   X_kn_1 = get_X_kn(X_km_1, w_n_m)
   X_kn_2 = get_X_kn(X_km_2, w_n_m)
@@ -54,11 +54,11 @@ def test_example_audio_sim():
   X_km_1 = get_X_km(S1, n_fft, win_len, hop_length, window)
   X_km_2 = get_X_km(S2, n_fft, win_len, hop_length, window)
   N = 40
-  low_freq = 0
-  high_freq = sample_rate / 2
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  fmin = 0
+  fmax = sample_rate / 2
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
   # Normieren hat keinen Einfluss auf das Ergebnis
-  w_n_m = norm_w_n_m(w_n_m, "sum", get_hz_points(low_freq, high_freq, N))
+  w_n_m = norm_w_n_m(w_n_m, "sum", get_hz_points(fmin, fmax, N))
   X_kn_1 = get_X_kn(X_km_1, w_n_m)
   print(X_kn_1.mean())
   X_kn_2 = get_X_kn(X_km_2, w_n_m)

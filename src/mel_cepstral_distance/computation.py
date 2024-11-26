@@ -58,14 +58,7 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) ->
   assert fmin >= 0
 
   hz_points = get_hz_points(fmin, fmax, N)
-
-  # logger = getLogger(__name__)
-  # logger.info(f"Frequency ranges of mel-bins ({fmin}Hz - {fmax}Hz):")
-  # for i in range(N + 1):
-  #   logger.info(f"Mel-band {i}: {hz_points[i]:.2f}Hz - {hz_points[i + 1]:.2f}Hz")
-
   bins = np.floor((n_fft + 1) * hz_points / sample_rate).astype(int)
-
   w_n_m = np.zeros((N, n_fft // 2 + 1))
 
   for n in range(1, N + 1):

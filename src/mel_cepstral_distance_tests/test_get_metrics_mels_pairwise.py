@@ -6,7 +6,7 @@ import numpy as np
 from librosa import load
 from librosa.feature import melspectrogram
 
-from mel_cepstral_distance.mcd_computation import get_metrics_mels_pairwise
+from mel_cepstral_distance_old.mcd_computation import get_metrics_mels_pairwise
 from mel_cepstral_distance_tests.test_get_metrics_wavs import *
 
 

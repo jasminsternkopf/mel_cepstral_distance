@@ -12,10 +12,10 @@ from librosa.feature import melspectrogram
 from pandas import DataFrame
 from tqdm import tqdm
 
-from mel_cepstral_distance.core import (get_mcd_and_penalty_and_final_frame_number,
+from mel_cepstral_distance_old.core import (get_mcd_and_penalty_and_final_frame_number,
                                         get_mfccs_of_mel_spectrogram)
 from mel_cepstral_distance.helper import get_all_files_in_all_subfolders
-from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
+from mel_cepstral_distance_old.types import Frames, MelCepstralDistance, Penalty
 
 
 def get_metrics_wavs(wav_file_1: Path, wav_file_2: Path, *, hop_length: int = 256, n_fft: int = 1024, window: str = 'hamming', center: bool = False, n_mels: int = 20, htk: bool = True, norm: Optional[Any] = None, dtype: np.dtype = np.float64, n_mfcc: int = 16, use_dtw: bool = True) -> Tuple[MelCepstralDistance, Penalty, Frames]:

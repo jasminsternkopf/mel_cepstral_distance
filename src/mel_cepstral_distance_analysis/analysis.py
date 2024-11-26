@@ -13,11 +13,10 @@ from mel_cepstral_distance.alignment import align_2d_sequences_using_dtw
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
                                                get_X_km, get_X_kn)
 from mel_cepstral_distance.helper import (detect_non_silence_in_MC_X_ik, detect_non_silence_in_X_km,
-                                          detect_non_silence_in_X_kn,
-                                          extract_extract_frames_from_signal, fill_with_zeros_2d,
-                                          get_penalty, ms_to_samples, norm_audio_signal,
-                                          plot_MC_X_ik, plot_X_km, plot_X_kn, remove_silence_rms,
-                                          resample_if_necessary, samples_to_ms,
+                                          detect_non_silence_in_X_kn, extract_frames_from_signal,
+                                          fill_with_zeros_2d, get_penalty, ms_to_samples,
+                                          norm_audio_signal, plot_MC_X_ik, plot_X_km, plot_X_kn,
+                                          remove_silence_rms, resample_if_necessary, samples_to_ms,
                                           stack_images_vertically)
 
 
@@ -288,7 +287,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       print(
         f"A -> Removed {len_silent_frames_A}/{former_len_A} silence frames")
 
-      signalA_silence_removed = extract_extract_frames_from_signal(
+      signalA_silence_removed = extract_frames_from_signal(
         signalA, X_kn_A_non_silent_idx, hop_len_samples)
       wavfile.write(log_dir / f"{step}_1_A_silence_removed.wav",
                     sample_rate, signalA_silence_removed)
@@ -321,7 +320,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       print(
         f"B -> Removed {len_silent_frames_B}/{former_len_B} silence frames")
 
-      signalB_silence_removed = extract_extract_frames_from_signal(
+      signalB_silence_removed = extract_frames_from_signal(
         signalB, X_kn_B_non_silent_idx, hop_len_samples)
       wavfile.write(log_dir / f"{step}_1_B_silence_removed.wav",
                     sample_rate, signalB_silence_removed)
@@ -407,7 +406,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       print(
         f"A -> Removed {len_silent_frames_A} silence frames ({samples_to_ms(len_silent_frames_A * hop_len_samples, sample_rate)/1000:.0f}s)")
 
-      signalA_silence_removed = extract_extract_frames_from_signal(
+      signalA_silence_removed = extract_frames_from_signal(
         signalA, non_silent_frames_A, hop_len_samples)
       wavfile.write(log_dir / f"{step}_1_A_silence_removed.wav",
                     sample_rate, signalA_silence_removed)
@@ -443,7 +442,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
       print(
         f"B -> Removed {len_silent_frames_B} silence frames ({samples_to_ms(len_silent_frames_B * hop_len_samples, sample_rate)/1000:.0f}s)")
 
-      signalB_silence_removed = extract_extract_frames_from_signal(
+      signalB_silence_removed = extract_frames_from_signal(
         signalB, non_silent_frames_B, hop_len_samples)
       wavfile.write(log_dir / f"{step}_1_B_silence_removed.wav",
                     sample_rate, signalB_silence_removed)
@@ -541,3 +540,4 @@ def align_frames_2d(seqA: np.ndarray, seqB: np.ndarray, aligning: Literal["dtw",
   penalty = get_penalty(former_len_A, former_len_B, seqA.shape[1])
   print(f"Alignment penalty: {penalty:.4f}")
   return seqA, seqB, penalty
+

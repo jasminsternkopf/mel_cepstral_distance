@@ -64,7 +64,6 @@ def test_direct_array_comparison_nfft_sixteen():
 
   result = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
 
-  # Adjusting expected shape to ensure matching sizes
   assert result.shape == expected.shape, f"Expected shape {expected.shape}, but got {result.shape}."
   assert np.allclose(result, expected), f"Expected array:\n{expected}\nbut got:\n{result}"
 
@@ -84,6 +83,22 @@ def test_direct_array_comparison_nfft_eight():
 
   result = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
 
-  # Adjusting expected shape to ensure matching sizes
+  assert result.shape == expected.shape, f"Expected shape {expected.shape}, but got {result.shape}."
+  assert np.allclose(result, expected), f"Expected array:\n{expected}\nbut got:\n{result}"
+
+
+def test_zero_sum_band():
+  sample_rate = 16000
+  N = 2
+  n_fft = 4
+  low_freq = 0
+  high_freq = 8000
+  result = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+
+  expected = np.array([
+    [0., 0., 0.],
+    [0.6666666, 0.3333333, 0.]
+  ])
+
   assert result.shape == expected.shape, f"Expected shape {expected.shape}, but got {result.shape}."
   assert np.allclose(result, expected), f"Expected array:\n{expected}\nbut got:\n{result}"

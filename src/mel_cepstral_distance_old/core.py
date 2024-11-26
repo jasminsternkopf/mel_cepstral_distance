@@ -5,7 +5,7 @@ from fastdtw.fastdtw import fastdtw
 from librosa.feature import mfcc
 from scipy.spatial.distance import euclidean
 
-from mel_cepstral_distance.types import Frames, MelCepstralDistance, Penalty
+from mel_cepstral_distance_old.types import Frames, MelCepstralDistance, Penalty
 
 
 def get_mfccs_of_mel_spectrogram(mel_spectrogram: np.ndarray, n_mfcc: int, take_log: bool) -> np.ndarray:

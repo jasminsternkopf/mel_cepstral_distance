@@ -1,9 +1,9 @@
-
 from logging import getLogger
 from pathlib import Path
 from typing import Literal, Optional, Tuple
 
 import numpy as np
+import numpy.typing as npt
 from scipy.io import wavfile
 
 from mel_cepstral_distance.alignment import align_MC, align_X_km, align_X_kn
@@ -89,6 +89,8 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
       min_silence_samples=win_len_samples
     )
 
+    remove_silence = "no"
+
   # STFT - Shape: (#Frames, Bins)
   hop_len_samples = ms_to_samples(hop_len, sample_rate)
   X_km_A = get_X_km(signalA, n_fft_samples, win_len_samples, hop_len_samples, window)
@@ -102,7 +104,7 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   return mean_mcd_over_all_k, res_penalty
 
 
-def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate: int = 8000, n_fft: float = 32, low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.complex128], *, sample_rate: int = 8000, n_fft: float = 32, low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
   if not X_km_A.shape[1] == X_km_B.shape[1]:
     raise ValueError("both spectrograms must have the same number of n_fft bins")
 
@@ -154,9 +156,14 @@ def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate:
       logger = getLogger(__name__)
       logger.warning("after removing silence, spectrogram B is empty")
 
+    remove_silence = "no"
+
   penalty: float = None
+  aligned_here: bool = False
   if align_target == "spec":
     X_km_A, X_km_B, penalty = align_X_km(X_km_A, X_km_B, aligning)
+    aligned_here = True
+    align_target = "mel"
     aligning = "pad"
 
   # Mel-Bank - Shape: (N, #Frames)
@@ -171,7 +178,7 @@ def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate:
     s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
   )
 
-  if align_target == "spec":
+  if aligned_here:
     assert res_penalty == 0
   else:
     assert penalty is None
@@ -215,9 +222,14 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
       logger = getLogger(__name__)
       logger.warning("after removing silence, mel-spectrogram B is empty")
 
+    remove_silence = "no"
+
   penalty: float = None
+  aligned_here: bool = False
   if align_target == "mel":
     X_kn_A, X_kn_B, penalty = align_X_kn(X_kn_A, X_kn_B, aligning)
+    aligned_here = True
+    align_target = "mfcc"
     aligning = "pad"
 
   # Shape: (N, #Frames)
@@ -231,7 +243,7 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
     s=s, D=D, aligning=aligning, remove_silence=remove_silence_mfcc, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
   )
 
-  if align_target == "mel":
+  if aligned_here:
     assert res_penalty == 0
   else:
     assert penalty is None

@@ -110,28 +110,6 @@ def get_X_kn_fast(X_km: np.ndarray, w_n_m: np.ndarray) -> np.ndarray:
 
 
 def get_MC_X_ik(X_kn: np.ndarray, M: int) -> np.ndarray:
-  """" 
-  Calculates the mel cepstrum coefficients of the mel spectrogram
-  returns mel cepstrum with shape (M, #frames)
-  """
-  # K: total frame count
-  # M: number of cepstral coefficients
-  assert X_kn.ndim == 2, f"Expected a 2D array, but got {X_kn.ndim} dimensions"
-  assert isinstance(M, int) and M > 0, "M must be a positive integer"
-  assert M <= X_kn.shape[1], "M must be less than or equal to the number of mel bands (columns) in X_kn"
-  K: int = X_kn.shape[0]
-  MC_X_ik: np.ndarray = np.zeros((M, K))
-  for i in range(1, M + 1):
-    for k in range(K):
-      tmp = [
-        X_kn[k, n - 1] * np.cos(i * (n - 0.5) * np.pi / M)
-        for n in range(1, M + 1)
-      ]
-      MC_X_ik[i - 1, k] = np.sum(tmp)
-  return MC_X_ik
-
-
-def get_MC_X_ik_fast(X_kn: np.ndarray, M: int) -> np.ndarray:
   """
   Calculates the mel cepstrum coefficients of the mel spectrogram
   returns mel cepstrum with shape (M, #frames)

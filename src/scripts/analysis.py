@@ -10,8 +10,8 @@ import numpy as np
 from scipy.io import wavfile
 
 from mel_cepstral_distance.alignment import align_2d_sequences_using_dtw
-from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik_fast, get_MCD_k,
-                                               get_w_n_m, get_X_km, get_X_kn_fast)
+from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
+                                               get_X_km, get_X_kn_fast)
 from mel_cepstral_distance.helper import (detect_non_silence_in_MC_X_ik, detect_non_silence_in_X_km,
                                           detect_non_silence_in_X_kn,
                                           extract_extract_frames_from_signal, fill_with_zeros_2d,
@@ -373,8 +373,8 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
   step += 1
   print(f"-- ({step}) Calculating Mel Cepstral Coefficients --")
   # Shape: (N, #Frames)
-  MC_X_ik = get_MC_X_ik_fast(X_kn_A, N)
-  MC_Y_ik = get_MC_X_ik_fast(X_kn_B, N)
+  MC_X_ik = get_MC_X_ik(X_kn_A, N)
+  MC_Y_ik = get_MC_X_ik(X_kn_B, N)
 
   print(f"Calculated {N} MFCCs")
   print(f"A -> Min: {MC_X_ik.min()}, Mean: {MC_X_ik.mean()}, Max: {MC_X_ik.max()}")

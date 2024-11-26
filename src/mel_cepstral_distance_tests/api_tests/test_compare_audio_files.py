@@ -12,5 +12,5 @@ def test_component():
     align_target="spec",
     aligning="dtw",
   )
-  assert mcd == 9.078626838893001
-  assert pen == 0.18829516539440205
+  assert mcd == 9.417554268936629
+  assert pen == 0.2549019607843137

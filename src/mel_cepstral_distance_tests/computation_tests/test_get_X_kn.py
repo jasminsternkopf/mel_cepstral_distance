@@ -63,8 +63,8 @@ def test_mel_spectrogram_dimension_fix():
   expected_shape = (X_km.shape[0], N)
   assert result.shape == expected_shape, f"Expected shape {expected_shape}, but got {result.shape}."
   assert np.allclose(result, np.array([
-    [0.30103, 0.97772361],
-    [1.4573772, 1.6946052]
+    [0.47712125, 1.2787536],
+    [1.63346846, 1.99563519]
   ]))
   # Compare with the paper's implementation
   assert np.allclose(result, get_X_kn_from_paper(X_km, w_n_m))

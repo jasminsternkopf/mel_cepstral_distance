@@ -59,8 +59,6 @@ def test_direct_array_comparison_nfft_sixteen():
     [0., 1., 0.5, 0., 0., 0., 0., 0., 0.],
     [0., 0., 0.5, 1., 0.8, 0.6, 0.4, 0.2, 0.]
   ])
-  row_sums = expected.sum(axis=1, keepdims=True)
-  expected = expected / row_sums
 
   result = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
 
@@ -78,8 +76,6 @@ def test_direct_array_comparison_nfft_eight():
     [1., 0.5, 0., 0., 0.],
     [0., 0.5, 1., 0.5, 0.]
   ])
-  row_sums = expected.sum(axis=1, keepdims=True)
-  expected = expected / row_sums
 
   result = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
 
@@ -97,7 +93,7 @@ def test_zero_sum_band():
 
   expected = np.array([
     [0., 0., 0.],
-    [0.6666666, 0.3333333, 0.]
+    [1., 0.5, 0.]
   ])
 
   assert result.shape == expected.shape, f"Expected shape {expected.shape}, but got {result.shape}."

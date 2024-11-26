@@ -1,6 +1,6 @@
 import numpy as np
 
-from mel_cepstral_distance.helper import fill_with_zeros_1d
+from mel_cepstral_distance_analysis.helper import fill_with_zeros_1d
 
 
 def test_padding_with_different_lengths():

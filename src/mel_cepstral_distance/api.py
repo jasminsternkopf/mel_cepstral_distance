@@ -20,8 +20,6 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   - high freq is max sr/2
   - n_fft should be equal to win_len
   - n_fft should be a power of 2 in samples
-  - mel -8
-  - spec 30 (sum) oder 0.05 (mean)
   """
   if remove_silence not in ["no", "sig", "spec", "mel", "mfcc"]:
     raise ValueError("remove_silence must be 'no', 'sig', 'spec', 'mel' or 'mfcc'")
@@ -96,7 +94,7 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   X_km_A = get_X_km(signalA, n_fft_samples, win_len_samples, hop_len_samples, window)
   X_km_B = get_X_km(signalB, n_fft_samples, win_len_samples, hop_len_samples, window)
 
-  mean_mcd_over_all_k, res_penalty = compare_spectrograms(
+  mean_mcd_over_all_k, res_penalty = compare_amplitude_spectrograms(
     X_km_A, X_km_B,
     sample_rate=sample_rate, n_fft=n_fft, low_freq=low_freq, high_freq=high_freq, N=N, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
   )
@@ -104,7 +102,7 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   return mean_mcd_over_all_k, res_penalty
 
 
-def compare_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.complex128], *, sample_rate: int = 8000, n_fft: float = 32, low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.complex128], *, sample_rate: int = 8000, n_fft: float = 32, low_freq: int = 0, high_freq: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
   if not X_km_A.shape[1] == X_km_B.shape[1]:
     raise ValueError("both spectrograms must have the same number of n_fft bins")
 

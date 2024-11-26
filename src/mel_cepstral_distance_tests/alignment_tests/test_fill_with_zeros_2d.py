@@ -1,6 +1,6 @@
 import numpy as np
 
-from mel_cepstral_distance.helper import fill_with_zeros_2d
+from mel_cepstral_distance.alignment import fill_with_zeros_2d
 
 
 def test_fill_rest_with_zeros():

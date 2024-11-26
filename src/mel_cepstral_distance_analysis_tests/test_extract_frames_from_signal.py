@@ -1,6 +1,6 @@
 import numpy as np
 
-from mel_cepstral_distance.helper import extract_frames_from_signal
+from mel_cepstral_distance_analysis.helper import extract_frames_from_signal
 
 
 def test_simple_signal():

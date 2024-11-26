@@ -4,6 +4,7 @@ from typing import Generator, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 from PIL import Image
 from scipy.signal import resample
 
@@ -47,7 +48,7 @@ def fill_with_zeros_1d(array_1: np.ndarray, array_2: np.ndarray) -> Tuple[np.nda
   return array_1, array_2
 
 
-def amp_to_mag(X_km: np.ndarray) -> np.ndarray:
+def amp_to_mag(X_km: npt.NDArray[np.complex128]) -> np.ndarray:
   return np.abs(X_km)
 
 

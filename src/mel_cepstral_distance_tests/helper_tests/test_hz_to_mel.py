@@ -1,6 +1,6 @@
 import numpy as np
 
-from mel_cepstral_distance.computation import hz_to_mel
+from mel_cepstral_distance.helper import hz_to_mel
 
 
 def test_hz_to_mel_zero_frequency():

@@ -11,7 +11,7 @@ from scipy.io import wavfile
 
 from mel_cepstral_distance.alignment import align_2d_sequences_using_dtw
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
-                                               get_X_km, get_X_kn_fast)
+                                               get_X_km, get_X_kn)
 from mel_cepstral_distance.helper import (detect_non_silence_in_MC_X_ik, detect_non_silence_in_X_km,
                                           detect_non_silence_in_X_kn,
                                           extract_extract_frames_from_signal, fill_with_zeros_2d,
@@ -250,8 +250,8 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
   step += 1
   print(f"-- ({step}) Calculating Mel-spectrograms --")
   # Mel-Spectrogram - Shape: (#Frames, #N)
-  X_kn_A = get_X_kn_fast(X_km_A, w_n_m)
-  X_kn_B = get_X_kn_fast(X_km_B, w_n_m)
+  X_kn_A = get_X_kn(X_km_A, w_n_m)
+  X_kn_B = get_X_kn(X_km_B, w_n_m)
 
   print(
     f"A -> Calculated {len(X_kn_A)} frames with {X_kn_A.shape[1]} mel-bins for mel-spectrogram")

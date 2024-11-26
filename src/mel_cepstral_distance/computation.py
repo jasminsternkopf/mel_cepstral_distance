@@ -1,11 +1,25 @@
+from logging import getLogger
 from typing import Literal
 
 import numpy as np
+import numpy.typing as npt
 
 from mel_cepstral_distance.helper import amp_to_mag, energy_to_bel, get_hz_points, mag_to_energy
 
 
-def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window: Literal["hamming", "hanning"]) -> np.ndarray:
+def adjust_win_len_to_n_fft(windowed_frames: np.ndarray, n_fft: int) -> np.ndarray:
+  """ padding or truncating the frames to n_fft """
+  win_len = windowed_frames.shape[1]
+  if win_len < n_fft:
+    windowed_frames = np.pad(windowed_frames, ((0, 0), (0, n_fft - win_len)), mode='constant')
+    win_len = n_fft
+  elif win_len > n_fft:
+    windowed_frames = windowed_frames[:, :n_fft]
+    win_len = n_fft
+  return windowed_frames, win_len
+
+
+def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window: Literal["hamming", "hanning"]) -> npt.NDArray[np.complex128]:
   """ 
   Short-Time Fourier Transform (STFT) 
   returns amplitude spectrogram with shape (#frames, n_fft // 2 + 1)
@@ -17,25 +31,20 @@ def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window:
     for k in range(0, K - win_len, hop_length)
   ])
 
-  # padding or truncating the frames to n_fft
-  if win_len < n_fft:
-    windowed_frames = np.pad(windowed_frames, ((0, 0), (0, n_fft - win_len)), mode='constant')
-    win_len = n_fft
-  elif win_len > n_fft:
-    windowed_frames = windowed_frames[:, :n_fft]
-    win_len = n_fft
+  windowed_frames, adjusted_win_len = adjust_win_len_to_n_fft(windowed_frames, n_fft)
 
   if window == "hamming":
-    win = np.hamming(win_len)
+    win = np.hamming(adjusted_win_len)
   elif window == "hanning":
-    win = np.hanning(win_len)
+    win = np.hanning(adjusted_win_len)
   else:
     assert False, f"Unknown window function '{window}'"
-  # STFT
-  K_km = np.fft.rfft(windowed_frames * win, n=n_fft)
-  assert K_km.shape == (windowed_frames.shape[0], n_fft // 2 + 1)
 
-  return K_km
+  # STFT
+  X_km = np.fft.rfft(windowed_frames * win, n=n_fft)
+
+  assert X_km.shape == (windowed_frames.shape[0], n_fft // 2 + 1)
+  return X_km
 
 
 def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: float) -> np.ndarray:
@@ -68,33 +77,17 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: 
     w_n_m[n - 1, center:right] = (right - np.arange(center, right)) / (right - center)
 
     # norm Mel band
-    w_n_m[n - 1, :] /= np.sum(w_n_m[n - 1, :])
+    sum_w = np.sum(w_n_m[n - 1, :])
+    if sum_w == 0:
+      logger = getLogger(__name__)
+      logger.warning(f"Mel band {n} has no energy")
+    else:
+      w_n_m[n - 1, :] /= sum_w
 
   return w_n_m
 
 
-def get_X_kn(X_km: np.ndarray, w_n_m: np.ndarray) -> np.ndarray:
-  """
-  Calculates the energy mel spectrogram (Bel) of the linear amplitude spectrogram
-  returns mel spectrogram with shape (#frames, N)
-  """
-  # N = n mels
-  assert X_km.shape[1] == w_n_m.shape[1], f"Expected {w_n_m.shape[1]} columns, but got {X_km.shape[1]}"
-
-  K = X_km.shape[0]
-  N = w_n_m.shape[0]
-
-  # same as np.dot(energy_spec, w_n_m.T)
-  X_kn_energy = np.zeros((K, N))
-  for k in range(K):
-    for n in range(w_n_m.shape[0]):
-      X_kn_energy[k, n] = np.sum(abs(X_km[k, :]) ** 2 * w_n_m[n, :])
-
-  X_kn_energy_bel = energy_to_bel(X_kn_energy)
-  return X_kn_energy_bel
-
-
-def get_X_kn_fast(X_km: np.ndarray, w_n_m: np.ndarray) -> np.ndarray:
+def get_X_kn(X_km: npt.NDArray[np.complex128], w_n_m: np.ndarray) -> np.ndarray:
   """
   Calculates the energy mel spectrogram (Bel) of the linear amplitude spectrogram
   returns mel spectrogram with shape (#frames, N)

@@ -8,7 +8,7 @@ from scipy.io import wavfile
 
 from mel_cepstral_distance.alignment import align_MC, align_X_km, align_X_kn
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
-                                               get_X_km, get_X_kn_fast)
+                                               get_X_km, get_X_kn)
 from mel_cepstral_distance.helper import (ms_to_samples, norm_audio_signal, remove_silence_MC_X_ik,
                                           remove_silence_rms, remove_silence_X_km,
                                           remove_silence_X_kn, resample_if_necessary)
@@ -163,8 +163,8 @@ def compare_spectrograms(X_km_A: np.ndarray, X_km_B: np.ndarray, *, sample_rate:
   w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, low_freq, high_freq)
 
   # Mel-Spectrogram - Shape: (#Frames, #N)
-  X_kn_A = get_X_kn_fast(X_km_A, w_n_m)
-  X_kn_B = get_X_kn_fast(X_km_B, w_n_m)
+  X_kn_A = get_X_kn(X_km_A, w_n_m)
+  X_kn_B = get_X_kn(X_km_B, w_n_m)
 
   mean_mcd_over_all_k, res_penalty = compare_mel_spectrograms(
     X_kn_A, X_kn_B,

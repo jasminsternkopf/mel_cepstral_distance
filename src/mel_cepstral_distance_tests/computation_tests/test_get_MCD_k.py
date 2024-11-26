@@ -3,6 +3,21 @@ import numpy as np
 from mel_cepstral_distance.computation import get_MCD_k
 
 
+def get_MCD_k_from_paper(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, s: int, D: int) -> np.ndarray:
+  assert MC_X_ik.shape == MC_Y_ik.shape
+  assert 0 <= s < D
+  K = MC_X_ik.shape[1]
+
+  MCD_k = np.zeros(K)
+  for k in range(K):
+    diff_square_sum = 0
+    for i in range(s, D):
+      diff_square_sum += (MC_X_ik[i, k] - MC_Y_ik[i, k]) ** 2
+    MCD_k[k] = np.sqrt(diff_square_sum)
+
+  return MCD_k
+
+
 def test_basic_case_zero_three():
   MC_X_ik = np.array([[1, 2], [3, 4], [5, 6]])
   MC_Y_ik = np.array([[1, 2], [3, 5], [5, 8]])
@@ -13,6 +28,9 @@ def test_basic_case_zero_three():
   ])
   result = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   assert np.allclose(result, expected), f"Expected {expected}, but got {result}."
+  # Compare with the paper's implementation
+  assert np.allclose(result, get_MCD_k_from_paper(MC_X_ik, MC_Y_ik, s, D)
+                     ), f"Expected {expected}, but got {result}."
 
 
 def test_basic_case_one_three_returns_same_as_zero_three_in_this_case():
@@ -25,6 +43,9 @@ def test_basic_case_one_three_returns_same_as_zero_three_in_this_case():
   ])
   result = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   assert np.allclose(result, expected), f"Expected {expected}, but got {result}."
+  # Compare with the paper's implementation
+  assert np.allclose(result, get_MCD_k_from_paper(MC_X_ik, MC_Y_ik, s, D)
+                     ), f"Expected {expected}, but got {result}."
 
 
 def test_basic_case_zero_two():
@@ -37,6 +58,9 @@ def test_basic_case_zero_two():
   ])
   result = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   assert np.allclose(result, expected), f"Expected {expected}, but got {result}."
+  # Compare with the paper's implementation
+  assert np.allclose(result, get_MCD_k_from_paper(MC_X_ik, MC_Y_ik, s, D)
+                     ), f"Expected {expected}, but got {result}."
 
 
 def test_case_with_nonzero_start_index():
@@ -49,6 +73,9 @@ def test_case_with_nonzero_start_index():
   ])
   result = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   assert np.allclose(result, expected), f"Expected {expected}, but got {result}."
+  # Compare with the paper's implementation
+  assert np.allclose(result, get_MCD_k_from_paper(MC_X_ik, MC_Y_ik, s, D)
+                     ), f"Expected {expected}, but got {result}."
 
 
 def test_large_values_case():
@@ -61,6 +88,9 @@ def test_large_values_case():
   ])
   result = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   assert np.allclose(result, expected), f"Expected {expected}, but got {result}."
+  # Compare with the paper's implementation
+  assert np.allclose(result, get_MCD_k_from_paper(MC_X_ik, MC_Y_ik, s, D)
+                     ), f"Expected {expected}, but got {result}."
 
 
 def test_mixed_values_case():
@@ -73,3 +103,6 @@ def test_mixed_values_case():
   ])
   result = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   assert np.allclose(result, expected), f"Expected {expected}, but got {result}."
+  # Compare with the paper's implementation
+  assert np.allclose(result, get_MCD_k_from_paper(MC_X_ik, MC_Y_ik, s, D)
+                     ), f"Expected {expected}, but got {result}."

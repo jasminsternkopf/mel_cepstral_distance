@@ -3,8 +3,9 @@ from pathlib import Path
 import numpy as np
 from scipy.io import wavfile
 
-from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_X_km,
-                                               get_X_kn)
+from mel_cepstral_distance.alignment import align_MC
+from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
+                                               get_X_km, get_X_kn)
 
 
 def test_compontent():
@@ -22,16 +23,17 @@ def test_compontent():
   N = 40
   low_freq = 0
   high_freq = sample_rate / 2
-  X_kn_1 = get_X_kn(X_km_1, sample_rate, N, n_fft, low_freq, high_freq)
-  X_kn_2 = get_X_kn(X_km_2, sample_rate, N, n_fft, low_freq, high_freq)
-  M = 13
-  MC_X_ik = get_MC_X_ik(X_kn_1, M)
-  MC_Y_ik = get_MC_X_ik(X_kn_2, M)
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  assert w_n_m.shape[1] == X_km_1.shape[1]
+  X_kn_1 = get_X_kn(X_km_1, w_n_m)
+  X_kn_2 = get_X_kn(X_km_2, w_n_m)
+  MC_X_ik = get_MC_X_ik(X_kn_1, N)
+  MC_Y_ik = get_MC_X_ik(X_kn_2, N)
   s = 1
   D = 12
   MCD_k = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   mean_mcd_over_all_k = get_average_MCD(MCD_k)
-  assert np.allclose(mean_mcd_over_all_k, 4.259283236188423)
+  assert np.allclose(mean_mcd_over_all_k, 6.484722423858316)
 
 
 def test_example_audio_sim():
@@ -53,14 +55,14 @@ def test_example_audio_sim():
   N = 40
   low_freq = 0
   high_freq = sample_rate / 2
-  X_kn_1 = get_X_kn(X_km_1, sample_rate, N, n_fft, low_freq, high_freq)
-  X_kn_2 = get_X_kn(X_km_2, sample_rate, N, n_fft, low_freq, high_freq)
-  M = 12
-  MC_X_ik = get_MC_X_ik(X_kn_1, M)
-  MC_Y_ik = get_MC_X_ik(X_kn_2, M)
-  # MC_X_ik, MC_Y_ik = align_mfccs_using_dtw(MC_X_ik, MC_Y_ik)
+  w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  X_kn_1 = get_X_kn(X_km_1, w_n_m)
+  X_kn_2 = get_X_kn(X_km_2, w_n_m)
+  MC_X_ik = get_MC_X_ik(X_kn_1, N)
+  MC_Y_ik = get_MC_X_ik(X_kn_2, N)
+  MC_X_ik, MC_Y_ik, pen = align_MC(MC_X_ik, MC_Y_ik, aligning="dtw")
   s = 1
   D = 12
   MCD_k = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   mean_mcd_over_all_k = get_average_MCD(MCD_k)
-  assert np.allclose(mean_mcd_over_all_k, 5.421872778503755)
+  assert np.allclose(mean_mcd_over_all_k, 16.564609750230623)

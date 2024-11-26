@@ -7,7 +7,7 @@ import numpy as np
 from scipy.io import wavfile
 
 from mel_cepstral_distance.alignment import align_MC, align_X_km, align_X_kn
-from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik_fast, get_MCD_k_fast,
+from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik_fast, get_MCD_k,
                                                get_w_n_m, get_X_km, get_X_kn_fast)
 from mel_cepstral_distance.helper import (ms_to_samples, norm_audio_signal, remove_silence_MC_X_ik,
                                           remove_silence_rms, remove_silence_X_km,
@@ -272,7 +272,7 @@ def compare_mfccs(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, *, s: int = 1, D: in
 
   MC_X_ik, MC_Y_ik, penalty = align_MC(MC_X_ik, MC_Y_ik, aligning)
 
-  MCD_k = get_MCD_k_fast(MC_X_ik, MC_Y_ik, s, D)
+  MCD_k = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   mean_mcd_over_all_k = get_average_MCD(MCD_k)
 
   return mean_mcd_over_all_k, penalty

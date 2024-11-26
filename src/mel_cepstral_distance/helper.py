@@ -47,6 +47,14 @@ def fill_with_zeros_1d(array_1: np.ndarray, array_2: np.ndarray) -> Tuple[np.nda
   return array_1, array_2
 
 
+def amp_to_mag(X_km: np.ndarray) -> np.ndarray:
+  return np.abs(X_km)
+
+
+def mag_to_energy(X_km: np.ndarray) -> np.ndarray:
+  return X_km ** 2
+
+
 def resample_if_necessary(audio: np.ndarray, sr: int, target_sr: int) -> np.ndarray:
   if sr == target_sr:
     return audio
@@ -218,7 +226,17 @@ def mel_to_hz(mel: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
   return 700 * (10**(mel / 2595) - 1)
 
 
+def energy_to_bel(energy: np.ndarray) -> np.ndarray:
+  """ 
+  Converts energy to bels 
+  """
+  return np.log10(energy + np.finfo(float).eps)
+
+
 def plot_X_km(X_km: np.ndarray, sample_rate: int, title: str):
+  """
+  Plots the magnitude spectrogram of the given linear amplitude spectrogram.
+  """
   # Calculate time and frequency axes
   n_frames = X_km.shape[0]  # Time frames
   num_freq_bins = X_km.shape[1]  # Frequency bins
@@ -229,12 +247,12 @@ def plot_X_km(X_km: np.ndarray, sample_rate: int, title: str):
   frame_bins = np.arange(n_frames)
 
   # Calculate magnitude spectrogram
-  magnitude_spectrogram = np.abs(X_km)
+  X_km_mag = amp_to_mag(X_km)
 
   # Plotting the spectrogram
   fig, ax = plt.subplots()
   cax = ax.pcolormesh(frame_bins, freq_bins, 20 *
-                      np.log10(magnitude_spectrogram + 1e-10).T, shading='auto')
+                      np.log10(X_km_mag + np.finfo(float).eps).T, shading='auto')
   fig.colorbar(cax, label='Magnitude (dB)')
   ax.set_title(f'STFT Magnitude Spectrogram - {title}')
   ax.set_xlabel('Time [frame]')

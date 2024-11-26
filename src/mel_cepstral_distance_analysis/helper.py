@@ -1,4 +1,3 @@
-from fastdtw.fastdtw import fastdtw
 import os
 from pathlib import Path
 from typing import Generator, Tuple, Union
@@ -6,6 +5,7 @@ from typing import Generator, Tuple, Union
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
+from fastdtw.fastdtw import fastdtw
 from PIL import Image, ImageOps
 from scipy.signal import resample
 
@@ -55,7 +55,7 @@ def plot_X_kn(X_kn: np.ndarray, low_freq: int, high_freq: int, title: str):
   n_frames, n_mel_bins = X_kn.shape
 
   time_axis = np.linspace(0, n_frames + 1, n_frames + 1)
-  mel_freqs = get_hz_points(low_freq, high_freq, n_mel_bins)[:-1]
+  mel_freqs = get_hz_points(low_freq, high_freq, n_mel_bins)[1:]
 
   # X_kn is in Bel
   X_kn_db = X_kn * 10
@@ -65,10 +65,24 @@ def plot_X_kn(X_kn: np.ndarray, low_freq: int, high_freq: int, title: str):
   cax = ax.pcolormesh(time_axis, mel_freqs, X_kn_db.T, shading='auto')
   fig.colorbar(cax, label='Energy (dB)')
 
+  # ticks = np.arange(-100, 0 + 20, 20)
+  # color_steps = np.arange(-100, 0 + 0.1, 0.1)
+  # fig.colorbar(cax, label='Energy [dB]', ax=axes[0], boundaries=color_steps, ticks=ticks)
+
   ax.set_title(f'Mel Spectrogram - {title}')
   # y achse 1 step
   # plt.yticks(mel_freqs)
   # plt.yscale('log')
+  ax.set_yscale('log')
+  ticks = np.geomspace(mel_freqs[0], mel_freqs[-1], num=6, dtype=int)
+
+  ax.set_yticks(mel_freqs, minor=True, labels=[])
+  ax.minorticks_off()
+  ax.set_yticks(
+    ticks,
+    ticks,
+    minor=False,
+  )
   ax.set_xlabel('Time [frame]')
   ax.set_ylabel('Frequency [Hz]')
 

@@ -76,14 +76,24 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, low_freq: float, high_freq: 
     w_n_m[n - 1, left:center] = (np.arange(left, center) - left) / (center - left)
     w_n_m[n - 1, center:right] = (right - np.arange(center, right)) / (right - center)
 
-    # norm Mel band
-    sum_w = np.sum(w_n_m[n - 1, :])
-    if sum_w == 0:
-      logger = getLogger(__name__)
-      logger.warning(f"Mel band {n} has no energy")
-    else:
-      w_n_m[n - 1, :] /= sum_w
+  return w_n_m
 
+
+def norm_w_n_m(w_n_m: np.ndarray, method: Literal["slaney", "sum"], hz_points: np.ndarray) -> np.ndarray:
+  ''' normalizes the Mel filter bank '''
+  assert method in ["slaney", "sum"]
+  N, n_fft = w_n_m.shape
+  if method == "slaney":
+    enorm = 2.0 / (hz_points[2:] - hz_points[:-2])
+    w_n_m *= enorm[:, np.newaxis]
+  elif method == "sum":
+    for n in range(N):
+      sum_w = np.sum(w_n_m[n, :])
+      if sum_w == 0:
+        logger = getLogger(__name__)
+        logger.warning(f"Mel band {n} has no energy")
+      else:
+        w_n_m[n, :] /= sum_w
   return w_n_m
 
 

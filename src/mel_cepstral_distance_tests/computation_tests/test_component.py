@@ -5,7 +5,8 @@ from scipy.io import wavfile
 
 from mel_cepstral_distance.alignment import align_MC
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
-                                               get_X_km, get_X_kn)
+                                               get_X_km, get_X_kn, norm_w_n_m)
+from mel_cepstral_distance.helper import get_hz_points
 
 
 def test_compontent():
@@ -56,13 +57,21 @@ def test_example_audio_sim():
   low_freq = 0
   high_freq = sample_rate / 2
   w_n_m = get_w_n_m(sample_rate, n_fft, N, low_freq, high_freq)
+  # Normieren hat keinen Einfluss auf das Ergebnis
+  w_n_m = norm_w_n_m(w_n_m, "sum", get_hz_points(low_freq, high_freq, N))
   X_kn_1 = get_X_kn(X_km_1, w_n_m)
+  print(X_kn_1.mean())
   X_kn_2 = get_X_kn(X_km_2, w_n_m)
   MC_X_ik = get_MC_X_ik(X_kn_1, N)
+  print(MC_X_ik.mean())
   MC_Y_ik = get_MC_X_ik(X_kn_2, N)
   MC_X_ik, MC_Y_ik, pen = align_MC(MC_X_ik, MC_Y_ik, aligning="dtw")
   s = 1
   D = 12
   MCD_k = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
   mean_mcd_over_all_k = get_average_MCD(MCD_k)
+  print(mean_mcd_over_all_k)
   assert np.allclose(mean_mcd_over_all_k, 16.564609750230623)
+
+
+test_example_audio_sim()

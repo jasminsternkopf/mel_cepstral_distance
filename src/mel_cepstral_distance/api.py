@@ -62,7 +62,7 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
     if n_fft < win_len:
       logger.warning(f"truncating windows to n_fft ({n_fft}ms)")
     else:
-      assert win_len > n_fft
+      assert n_fft > win_len
       logger.warning(f"padding windows to n_fft ({n_fft}ms)")
 
   if norm_audio:
@@ -125,7 +125,7 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
 
   if fmax is not None:
     if not 0 < fmax <= sample_rate / 2:
-      raise ValueError(f"fmax must be in (0, sample_rate/2], i.e., (0, {sample_rate//2}]")
+      raise ValueError(f"fmax must be in (0, sample_rate//2], i.e., (0, {sample_rate//2}]")
   else:
     fmax = sample_rate // 2
 
@@ -134,6 +134,9 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
 
   if not n_fft > 0:
     raise ValueError("n_fft must be > 0")
+
+  if not N > 0:
+    raise ValueError("N must be > 0")
 
   n_fft_samples = ms_to_samples(n_fft, sample_rate)
 
@@ -180,6 +183,7 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
     assert res_penalty == 0
   else:
     assert penalty is None
+    assert res_penalty is not None
     penalty = res_penalty
 
   return mean_mcd_over_all_k, penalty
@@ -245,6 +249,7 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
     assert res_penalty == 0
   else:
     assert penalty is None
+    assert res_penalty is not None
     penalty = res_penalty
 
   return mean_mcd_over_all_k, penalty

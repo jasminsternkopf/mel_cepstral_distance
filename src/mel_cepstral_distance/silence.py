@@ -5,7 +5,7 @@ import numpy.typing as npt
 from mel_cepstral_distance.helper import amp_to_mag
 
 
-def remove_silence_rms(audio_signal: np.ndarray, threshold_rms: float, min_silence_samples: int = 256):
+def remove_silence_rms(audio_signal: np.ndarray, threshold_rms: float, min_silence_samples: int):
   assert 0 <= threshold_rms <= 1
   if threshold_rms == 0:
     return audio_signal

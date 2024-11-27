@@ -61,12 +61,15 @@ Both methods return the mel-cepstral distance, the penalty and the final frame n
 ```sh
 # update
 sudo apt update
-# install Python 3.8-3.11 for ensuring that tests can be run
+# install Python for ensuring that tests can be run
 sudo apt install python3-pip \
+  python3.7 python3.7-dev python3.7-distutils python3.7-venv \
   python3.8 python3.8-dev python3.8-distutils python3.8-venv \
   python3.9 python3.9-dev python3.9-distutils python3.9-venv \
   python3.10 python3.10-dev python3.10-distutils python3.10-venv \
   python3.11 python3.11-dev python3.11-distutils python3.11-venv
+  python3.12 python3.12-dev python3.12-distutils python3.12-venv
+  python3.13 python3.13-dev python3.13-venv
 # install pipenv for creation of virtual environments
 python3.8 -m pip install pipenv --user
 

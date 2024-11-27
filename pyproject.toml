@@ -1,9 +1,9 @@
 [project]
 name = "mel-cepstral-distance"
 version = "0.0.3"
-description = "CLI and library to compute the Mel-Cepstral Distance of two WAV files based on the paper 'Mel-Cepstral Distance Measure for Objective Speech Quality Assessment' by Robert F. Kubichek."
+description = "CLI and library to compute the Mel-Cepstral Distance of two WAV files based on the paper 'Mel-Cepstral Distance Measure for Objective Speech Quality Assessment' by Kubichek (1993)."
 readme = "README.md"
-requires-python = ">=3.8, <3.12"
+requires-python = ">=3.7, <3.14"
 license = { text = "MIT" }
 authors = [
   { name = "Jasmin Sternkopf", email = "jasmin.sternkopf@mathematik.tu-chemnitz.de" },
@@ -20,6 +20,7 @@ keywords = [
   "Dynamic Time Warping",
   "Cepstral",
   "Spectrogram",
+  "Spectrum",
   "Distance",
   "Divergence",
   "Distortion",
@@ -37,37 +38,40 @@ classifiers = [
   "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-  "librosa>=0.9.1",
-  "numpy>=1.22.3",
+  "numpy>=1.21.6",
   "scipy>=1.8.0",
   "fastdtw>=0.3.4",
-  "pandas>=2.0.0",
-  "tqdm>=4.63.0",
+  # "librosa>=0.9.1",
+  # "pandas>=2.0.0",
+  # "tqdm>=4.63.0",
 ]
 
 [project.urls]
 Homepage = "https://github.com/jasminsternkopf/mel_cepstral_distance"
 Issues = "https://github.com/jasminsternkopf/mel_cepstral_distance/issues"
 
-[project.scripts]
-mcd-cli = "mel_cepstral_distance_cli.cli:run_prod"
-
 [tool.setuptools.packages.find]
 where = ["src"]
-include = [
-  "mel_cepstral_distance",
-  "mel_cepstral_distance.*",
+include = ["mel_cepstral_distance", "mel_cepstral_distance.*"]
+exclude = [
   "mel_cepstral_distance_cli",
   "mel_cepstral_distance_cli.*",
-]
-exclude = [
+  "mel_cepstral_distance_analysis",
+  "mel_cepstral_distance_analysis.*",
+  "mel_cepstral_distance_analysis_tests",
+  "mel_cepstral_distance_analysis_tests.*",
+  "mel_cepstral_distance_analysis_old",
+  "mel_cepstral_distance_analysis_old.*",
   "mel_cepstral_distance_tests",
   "mel_cepstral_distance_tests.*",
   "mel_cepstral_distance_debug",
@@ -94,7 +98,7 @@ known_third_party = ["librosa", "numpy", "scipy", "fastdtw"]
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{38,39,310,311}
+envlist = py{37,38,39,310,311,312,313}
 isolated_build = True
 
 [testenv]
@@ -102,8 +106,6 @@ deps =
   pytest
 commands = 
   pytest
-  mcd-cli
-  mcd-cli -v
 """
 
 [build-system]

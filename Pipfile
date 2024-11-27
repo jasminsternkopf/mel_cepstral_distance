@@ -17,12 +17,12 @@ build = "*"
 tox = "*"
 
 [packages]
-librosa = ">=0.9.1"
-numpy = ">=1.22.3"
+numpy = ">=1.21.6"
 scipy = ">=1.8.0"
 fastdtw = ">=0.3.4"
-pandas = ">=2.0.0"
-tqdm = ">=4.63.0"
+# librosa = ">=0.9.1"
+# pandas = ">=2.0.0"
+# tqdm = ">=4.63.0"
 
 [requires]
-python_version = "3.8"
+python_version = "3.13"

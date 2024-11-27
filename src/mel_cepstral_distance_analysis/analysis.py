@@ -12,10 +12,11 @@ from mel_cepstral_distance.alignment import (align_2d_sequences_using_dtw, fill_
                                              get_penalty)
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
                                                get_X_km, get_X_kn)
-from mel_cepstral_distance.helper import (detect_non_silence_in_MC_X_ik, detect_non_silence_in_X_km,
-                                          detect_non_silence_in_X_kn, ms_to_samples,
-                                          norm_audio_signal, remove_silence_rms,
-                                          resample_if_necessary, samples_to_ms)
+from mel_cepstral_distance.helper import (ms_to_samples, norm_audio_signal, resample_if_necessary,
+                                          samples_to_ms)
+from mel_cepstral_distance.silence import (detect_non_silence_in_MC_X_ik,
+                                           detect_non_silence_in_X_km, detect_non_silence_in_X_kn,
+                                           remove_silence_rms)
 from mel_cepstral_distance_analysis.helper import (extract_frames_from_signal, plot_MC_X_ik,
                                                    plot_X_km, plot_X_kn, stack_images_vertically)
 
@@ -515,7 +516,7 @@ def align_frames_2d(seqA: np.ndarray, seqB: np.ndarray, aligning: Literal["dtw",
   former_len_A = seqA.shape[1]
   former_len_B = seqB.shape[1]
   if aligning == "dtw":
-    seqA, seqB = align_2d_sequences_using_dtw(seqA, seqB)
+    seqA, seqB, _ = align_2d_sequences_using_dtw(seqA, seqB)
 
     if former_len_A != seqA.shape[1]:
       print(f"A -> Aligned from {former_len_A} to {seqA.shape[1]} frames")

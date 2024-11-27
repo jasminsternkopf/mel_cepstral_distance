@@ -22,7 +22,6 @@ def align_X_km(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.comple
       amp_to_mag(X_km_A).T,
       amp_to_mag(X_km_B).T
     )
-
     X_km_A = X_km_A[paths[:, 0], :]
     X_km_B = X_km_B[paths[:, 1], :]
   else:
@@ -69,6 +68,7 @@ def align_frames_2d(seq1: np.ndarray, seq2: np.ndarray, aligning: Literal["dtw",
 def align_2d_sequences_using_dtw(seq_1: np.ndarray, seq_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
   assert seq_1.shape[0] == seq_2.shape[
     0], "both sequences must have the same number of features (rows)"
+  assert seq_1.shape[1] > 0 and seq_2.shape[1] > 0, "both sequences must have at least one frame"
   _, path = fastdtw(seq_1.T, seq_2.T, dist=euclidean)
   path_np = np.array(path)
   stretched_seq_1 = seq_1[:, path_np[:, 0]]
@@ -77,6 +77,10 @@ def align_2d_sequences_using_dtw(seq_1: np.ndarray, seq_2: np.ndarray) -> Tuple[
 
 
 def get_penalty(former_length_1: int, former_length_2: int, length_after_equaling: int) -> float:
+  assert former_length_1 > 0
+  assert former_length_2 > 0
+  assert length_after_equaling >= former_length_1
+  assert length_after_equaling >= former_length_2
   # lies between 0 and 1, the smaller the better
   penalty = 2 - (former_length_1 + former_length_2) / length_after_equaling
   return penalty

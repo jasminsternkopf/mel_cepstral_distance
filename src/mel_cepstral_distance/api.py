@@ -9,7 +9,8 @@ from scipy.io import wavfile
 from mel_cepstral_distance.alignment import align_MC, align_X_km, align_X_kn
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
                                                get_X_km, get_X_kn)
-from mel_cepstral_distance.helper import ms_to_samples, norm_audio_signal, resample_if_necessary
+from mel_cepstral_distance.helper import (get_n_fft_bins, ms_to_samples, norm_audio_signal,
+                                          resample_if_necessary)
 from mel_cepstral_distance.silence import (remove_silence_MC_X_ik, remove_silence_rms,
                                            remove_silence_X_km, remove_silence_X_kn)
 
@@ -41,6 +42,16 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
 
   sr1, signalA = wavfile.read(audio_A)
   sr2, signalB = wavfile.read(audio_B)
+
+  if len(signalA) == 0:
+    logger = getLogger(__name__)
+    logger.warning("audio A is empty")
+    return np.nan, np.nan
+
+  if len(signalB) == 0:
+    logger = getLogger(__name__)
+    logger.warning("audio B is empty")
+    return np.nan, np.nan
 
   if sample_rate is None:
     sample_rate = min(sr1, sr2)
@@ -95,19 +106,39 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   X_km_B = get_X_km(signalB, n_fft_samples, win_len_samples, hop_len_samples, window)
 
   mean_mcd_over_all_k, res_penalty = compare_amplitude_spectrograms(
-    X_km_A, X_km_B,
-    sample_rate=sample_rate, n_fft=n_fft, fmin=fmin, fmax=fmax, N=N, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
+    X_km_A, X_km_B, sample_rate, n_fft, fmin=fmin, fmax=fmax, N=N, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
   )
 
   return mean_mcd_over_all_k, res_penalty
 
 
-def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.complex128], *, sample_rate: int = 8000, n_fft: float = 32, fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
-  if not X_km_A.shape[1] == X_km_B.shape[1]:
-    raise ValueError("both spectrograms must have the same number of n_fft bins")
+def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, *, fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+  if X_km_A.shape[0] == 0:
+    logger = getLogger(__name__)
+    logger.warning("spectrogram A is empty")
+    return np.nan, np.nan
 
-  if not 0 < sample_rate:
-    raise ValueError("sample_rate must be > 0")
+  if X_km_B.shape[0] == 0:
+    logger = getLogger(__name__)
+    logger.warning("spectrogram B is empty")
+    return np.nan, np.nan
+
+  if not X_km_A.shape[1] == X_km_B.shape[1]:
+    raise ValueError(
+      f"both spectrograms must have the same number of frequency bins but got {X_km_A.shape[1]} != {X_km_B.shape[1]}")
+
+  assert X_km_A.shape[1] == X_km_B.shape[1]
+  n_fft_bins = X_km_A.shape[1]
+
+  if n_fft_bins == 0:
+    raise ValueError("spectrograms have no frequency bins")
+
+  n_fft_samples = ms_to_samples(n_fft, sample_rate)
+  if get_n_fft_bins(n_fft_samples) != n_fft_bins:
+    raise ValueError(
+      f"n_fft (in samples) // 2 + 1 must match the number of frequency bins in the spectrogram but got {n_fft_samples // 2 + 1} != {n_fft_bins}")
+  assert n_fft > 0
+  assert sample_rate > 0
 
   if aligning not in ["pad", "dtw"]:
     raise ValueError("aligning must be 'pad' or 'dtw'")
@@ -124,21 +155,16 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
         "cannot remove silence from MFCCs after both spectrograms were aligned")
 
   if fmax is not None:
-    if not 0 < fmax <= sample_rate / 2:
-      raise ValueError(f"fmax must be in (0, sample_rate//2], i.e., (0, {sample_rate//2}]")
+    if not 0 < fmax <= sample_rate // 2:
+      raise ValueError(f"fmax must be in (0, sample_rate // 2], i.e., (0, {sample_rate//2}]")
   else:
     fmax = sample_rate // 2
 
   if not 0 <= fmin < fmax:
     raise ValueError(f"fmin must be in [0, fmax), i.e., [0, {fmax})")
 
-  if not n_fft > 0:
-    raise ValueError("n_fft must be > 0")
-
   if not N > 0:
     raise ValueError("N must be > 0")
-
-  n_fft_samples = ms_to_samples(n_fft, sample_rate)
 
   if remove_silence == "spec":
     if silence_threshold_A is None:
@@ -190,6 +216,16 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
 
 
 def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+  if len(X_kn_A) == 0:
+    logger = getLogger(__name__)
+    logger.warning("mel-spectrogram A is empty")
+    return np.nan, np.nan
+
+  if len(X_kn_B) == 0:
+    logger = getLogger(__name__)
+    logger.warning("mel-spectrogram B is empty")
+    return np.nan, np.nan
+
   if not X_kn_A.shape[1] == X_kn_B.shape[1]:
     raise ValueError("both mel-spectrograms must have the same number of mel-bands")
 
@@ -256,6 +292,16 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
 
 
 def compare_mfccs(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", remove_silence: bool = False, silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+  if MC_X_ik.shape[1] == 0:
+    logger = getLogger(__name__)
+    logger.warning("MFCCs A are empty")
+    return np.nan, np.nan
+
+  if MC_Y_ik.shape[1] == 0:
+    logger = getLogger(__name__)
+    logger.warning("MFCCs B are empty")
+    return np.nan, np.nan
+
   if not MC_X_ik.shape[0] == MC_Y_ik.shape[0]:
     raise ValueError("both MFCCs must have the same number of coefficients")
 

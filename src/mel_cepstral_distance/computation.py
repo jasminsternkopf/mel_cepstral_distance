@@ -4,7 +4,8 @@ from typing import Literal
 import numpy as np
 import numpy.typing as npt
 
-from mel_cepstral_distance.helper import amp_to_mag, energy_to_bel, get_hz_points, mag_to_energy
+from mel_cepstral_distance.helper import (amp_to_mag, energy_to_bel, get_hz_points, get_n_fft_bins,
+                                          mag_to_energy)
 
 
 def adjust_win_len_to_n_fft(windowed_frames: np.ndarray, n_fft: int) -> np.ndarray:
@@ -43,12 +44,12 @@ def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window:
   # STFT
   X_km = np.fft.rfft(windowed_frames * win, n=n_fft)
 
-  assert X_km.shape == (windowed_frames.shape[0], n_fft // 2 + 1)
+  assert X_km.shape == (windowed_frames.shape[0], get_n_fft_bins(n_fft))
   return X_km
 
 
 def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) -> np.ndarray:
-  ''' calculates a normed Mel filter bank '''
+  ''' calculates a Mel filter bank '''
   # N: number of mel bands
   assert sample_rate > 0
   assert N > 0
@@ -59,7 +60,7 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) ->
 
   hz_points = get_hz_points(fmin, fmax, N)
   bins = np.floor((n_fft + 1) * hz_points / sample_rate).astype(int)
-  w_n_m = np.zeros((N, n_fft // 2 + 1))
+  w_n_m = np.zeros((N, get_n_fft_bins(n_fft)))
 
   for n in range(1, N + 1):
     left = bins[n - 1]

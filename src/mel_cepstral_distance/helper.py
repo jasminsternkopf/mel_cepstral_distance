@@ -32,6 +32,10 @@ def ms_to_samples(ms: float, sample_rate: int) -> int:
   return int(ms / 1000 * sample_rate)
 
 
+def get_n_fft_bins(n_fft: int) -> int:
+  return n_fft // 2 + 1
+
+
 def norm_audio_signal(audio: np.ndarray) -> np.ndarray:
   audio = audio / np.max(np.abs(audio))
   return audio

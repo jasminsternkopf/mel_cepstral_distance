@@ -43,6 +43,8 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   sr1, signalA = wavfile.read(audio_A)
   sr2, signalB = wavfile.read(audio_B)
 
+  # convert to float betweet 0 and 1
+
   if len(signalA) == 0:
     logger = getLogger(__name__)
     logger.warning("audio A is empty")
@@ -85,8 +87,15 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   if remove_silence == "sig":
     if silence_threshold_A is None:
       raise ValueError("silence_threshold_A must be set")
+
     if silence_threshold_B is None:
       raise ValueError("silence_threshold_B must be set")
+
+    if not 0 <= silence_threshold_A:
+      raise ValueError("silence_threshold_A must be greater than or equal to 0 RMS")
+
+    if not 0 <= silence_threshold_B:
+      raise ValueError("silence_threshold_B must be greater than or equal to 0 RMS")
 
     signalA = remove_silence_rms(
       signalA, silence_threshold_A,
@@ -97,6 +106,16 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
       signalB, silence_threshold_B,
       min_silence_samples=win_len_samples
     )
+
+    if len(signalA) == 0:
+      logger = getLogger(__name__)
+      logger.warning("after removing silence, audio A is empty")
+      return np.nan, np.nan
+
+    if len(signalB) == 0:
+      logger = getLogger(__name__)
+      logger.warning("after removing silence, audio B is empty")
+      return np.nan, np.nan
 
     remove_silence = "no"
 
@@ -178,10 +197,12 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
     if X_km_A.shape[0] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, spectrogram A is empty")
+      return np.nan, np.nan
 
     if X_km_B.shape[0] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, spectrogram B is empty")
+      return np.nan, np.nan
 
     remove_silence = "no"
 
@@ -255,10 +276,12 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
     if X_kn_A.shape[0] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, mel-spectrogram A is empty")
+      return np.nan, np.nan
 
     if X_kn_B.shape[0] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, mel-spectrogram B is empty")
+      return np.nan, np.nan
 
     remove_silence = "no"
 
@@ -326,10 +349,12 @@ def compare_mfccs(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, *, s: int = 1, D: in
     if MC_X_ik.shape[1] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, MFCCs A are empty")
+      return np.nan, np.nan
 
     if MC_Y_ik.shape[1] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, MFCCs B are empty")
+      return np.nan, np.nan
 
   MC_X_ik, MC_Y_ik, penalty = align_MC(MC_X_ik, MC_Y_ik, aligning)
 

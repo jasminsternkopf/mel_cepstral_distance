@@ -1,4 +1,6 @@
 
+from logging import getLogger
+
 import numpy as np
 import numpy.typing as npt
 
@@ -6,20 +8,30 @@ from mel_cepstral_distance.helper import amp_to_mag
 
 
 def remove_silence_rms(audio_signal: np.ndarray, threshold_rms: float, min_silence_samples: int):
-  assert 0 <= threshold_rms <= 1
+  assert 0 <= threshold_rms
   if threshold_rms == 0:
     return audio_signal
   non_silent_audio = []
 
   start = 0
+  # to be able to calculate power of two convert to float otherwise it will be nan for large numbers
+  audio_signal = audio_signal.astype(np.float32)
+
   while start < len(audio_signal):
     end = min(start + min_silence_samples, len(audio_signal))
     segment = audio_signal[start:end]
+    # segment als float
 
     rms_value = np.sqrt(np.mean(segment**2))
-
-    if rms_value >= threshold_rms:
+    if np.isnan(rms_value):
+      logger = getLogger(__name__)
+      logger.warning("RMS value is NaN for segment")
       non_silent_audio.append(segment)
+    else:
+      assert rms_value >= 0
+
+      if rms_value >= threshold_rms:
+        non_silent_audio.append(segment)
 
     start = end
 

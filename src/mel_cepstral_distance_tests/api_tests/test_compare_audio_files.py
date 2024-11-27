@@ -134,7 +134,7 @@ def test_invalid_remove_silence_raises_error():
     compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="none")
 
 
-def test_invalid_silence_threshold_raises_error():
+def test_no_silence_threshold_raises_error():
   # A None
   with pytest.raises(ValueError):
     compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sil",
@@ -169,12 +169,52 @@ def test_invalid_silence_threshold_raises_error():
                         silence_threshold_A=0.01, silence_threshold_B=None)
 
 
+def test_removing_silence_too_hard_returns_nan_nan():
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="sig", silence_threshold_A=10000, silence_threshold_B=0,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="sig", silence_threshold_A=0, silence_threshold_B=10000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="sig", silence_threshold_A=10000, silence_threshold_B=10000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+
+def test_invalid_sig_sil_thres_raises_error():
+  with pytest.raises(ValueError):
+    compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sig",
+                        silence_threshold_A=-1, silence_threshold_B=0)
+
+  with pytest.raises(ValueError):
+    compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sig",
+                        silence_threshold_A=0, silence_threshold_B=-1)
+
+  with pytest.raises(ValueError):
+    compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sig",
+                        silence_threshold_A=-1, silence_threshold_B=-1)
+
+
 def test_removing_silence_after_aligning_raises_error():
   # mel after spec was aligned
   with pytest.raises(ValueError):
     compare_audio_files(
       AUDIO_A, AUDIO_B,
-      remove_silence="mel", silence_threshold_A=0.01, silence_threshold_B=0.01,
+      remove_silence="mel", silence_threshold_A=0.01, silence_threshold_B=1,
       align_target="spec", aligning="dtw",
     )
 

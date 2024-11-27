@@ -7,8 +7,10 @@ import pytest
 from mel_cepstral_distance.api import compare_audio_files
 from mel_cepstral_distance.helper import samples_to_ms
 
-A = Path("examples/similar_audios/original.wav")
-B = Path("examples/similar_audios/inferred.wav")
+TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
+
+A = TEST_DIR / "A.wav"
+B = TEST_DIR / "B.wav"
 
 
 def test_aligning_with_pad_returns_same_for_spec_mel_mfcc():
@@ -225,72 +227,90 @@ def test_s_bigger_than_D_raises_error():
 
 
 def create_other_outputs():
-  targets = [
-    # sr
-    (None, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (16000, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (8000, 32, 32, 16, "hanning", 0, 4000, 80, 1, 13, True),
-    (4000, 32, 32, 16, "hanning", 0, 2000, 80, 1, 13, True),
+  size512 = samples_to_ms(512, 22050)
+  size128 = samples_to_ms(128, 22050)
 
-    # n_fft, win_len, hop_len
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 64, 64, 8, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 64, 64, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 64, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 64, 128, 16, "hanning", 0, 8000, 80, 1, 13, True),
+  targets = []
 
-    # fmax
-    (22050, 32, 32, 16, "hanning", 0, None, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 6000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 4000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 2000, 80, 1, 13, True),
+  # sample rate
+  for sr in [None, 22050, 16000, 8000, 4000]:
+    if sr is None:
+      sr_val = 22050
+    else:
+      sr_val = sr
 
-    # fmin
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 1000, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 2000, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 4000, 8000, 80, 1, 13, True),
+    targets.append((
+      sr,
+      samples_to_ms(512, sr_val), samples_to_ms(512, sr_val), samples_to_ms(128, sr_val),
+      "hanning", 0, sr_val // 2, 80, 1, 13, True
+    ))
 
-    # window
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hamming", 0, 8000, 80, 1, 13, True),
+  # n_fft, win_len, hop_len
+  for n_ffts, win_lens, hop_lens in [
+      (512, 512, 256),  # win len == nfft
+      (512, 256, 256),  # win len < nfft
+      (512, 1024, 256),  # win len > nfft
+      (512, 512, 128),
+      (1024, 1024, 128),
+    ]:
+    targets.append((
+      22050, samples_to_ms(n_ffts, 22050), samples_to_ms(win_lens, 22050),
+      samples_to_ms(hop_lens, 22050), "hanning", 0, 8000, 80, 1, 13, True
+    ))
 
-    # norm
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, False),
+  # fmax
+  for fmax in [None, 8000, 6000, 4000, 2000]:
+    targets.append((
+      22050, size512, size512, size128, "hanning", 0, fmax, 80, 1, 13, True
+    ))
 
-    # N
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 40, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 20, 1, 13, True),
+  # fmin
+  for fmin in [0, 1000, 2000, 4000]:
+    targets.append((
+      22050, size512, size512, size128, "hanning", fmin, 8000, 80, 1, 13, True
+    ))
 
-    # s, D
-    (22050, 32, 32, 16, "hanning", 0, 8000, 1, 0, 1, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 0, 1, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 0, 5, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 0, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 0, 16, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 0, 80, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 2, 1, 2, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 2, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 13, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 30, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 40, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 16, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 1, 80, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 2, 16, True),
-    (22050, 32, 32, 16, "hanning", 0, 8000, 80, 2, 80, True),
-  ]
+  # window
+  for window in ["hanning", "hamming"]:
+    targets.append((
+      22050, size512, size512, size128, window, 0, 8000, 80, 1, 13, True
+    ))
+
+  # norm
+  for norm in [True, False]:
+    targets.append((
+      22050, size512, size512, size128, "hanning", 0, 8000, 80, 1, 13, norm
+    ))
+
+  # N
+  for n in [20, 40, 60, 80]:
+    targets.append((
+      22050, size512, size512, size128, "hanning", 0, 8000, n, 1, 13, True
+    ))
+
+  # s, D
+  for s, d in [
+      (0, 1), (0, 1), (0, 2), (0, 5), (0, 13), (0, 16), (0, 80),
+      (1, 2), (1, 5), (1, 13), (1, 16), (1, 80),
+      (2, 3), (2, 13), (2, 80),
+      (79, 80),
+    ]:
+    targets.append((
+      22050, size512, size512, size128, "hanning", 0, 8000, 80, s, d, True
+    ))
+
+  targets.extend([
+    (22050, size512, size512, size128, "hanning", 0, 8000, 1, 0, 1, True),
+    (22050, size512, size512, size128, "hanning", 0, 8000, 2, 1, 2, True),
+  ])
 
   outputs = []
 
-  for sample_rate, n_fft, win_len, hop_len, window, fmin, fmax, n, s, d, norm in targets:
+  for sample_rate, size512, win_len, hop_len, window, fmin, fmax, n, s, d, norm in targets:
     mcd, pen = compare_audio_files(
       A, B,
       sample_rate=sample_rate,
-      n_fft=n_fft,
+      n_fft=size512,
       win_len=win_len,
       hop_len=hop_len,
       window=window,
@@ -304,17 +324,16 @@ def create_other_outputs():
       aligning="dtw",
       remove_silence="no",
     )
-    outputs.append((sample_rate, n_fft, win_len, hop_len,
+    outputs.append((sample_rate, size512, win_len, hop_len,
                    window, fmin, fmax, n, s, d, norm, mcd, pen))
 
   for vals in outputs:
     print("\t".join(str(i) for i in vals))
-  Path("src/mel_cepstral_distance_tests/api_tests/test_compare_audio_files_other.pkl").write_bytes(pickle.dumps(outputs))
+  (TEST_DIR / "test_compare_audio_files_other.pkl").write_bytes(pickle.dumps(outputs))
 
 
 def test_other_outputs():
-  outputs = pickle.loads(
-    Path("src/mel_cepstral_distance_tests/api_tests/test_compare_audio_files_other.pkl").read_bytes())
+  outputs = pickle.loads((TEST_DIR / "test_compare_audio_files_other.pkl").read_bytes())
   for sample_rate, n_fft, win_len, hop_len, window, fmin, fmax, n, s, d, norm, expected_mcd, expected_pen in outputs:
     mcd, pen = compare_audio_files(
       A, B,
@@ -392,12 +411,12 @@ def create_sil_outputs():
     outputs.append((remove_silence, sil_a, sil_b, aligning, target, mcd, pen))
   for vals in outputs:
     print("\t".join(str(i) for i in vals))
-  Path("src/mel_cepstral_distance_tests/api_tests/test_compare_audio_files_sil.pkl").write_bytes(pickle.dumps(outputs))
+  (TEST_DIR / "test_compare_audio_files_sil.pkl").write_bytes(pickle.dumps(outputs))
 
 
 def test_sil_outputs():
   outputs = pickle.loads(
-    Path("src/mel_cepstral_distance_tests/api_tests/test_compare_audio_files_sil.pkl").read_bytes())
+    (TEST_DIR / "test_compare_audio_files_sil.pkl").read_bytes())
   for remove_silence, sil_a, sil_b, aligning, target, expected_mcd, expected_pen in outputs:
     mcd, pen = compare_audio_files(
       A, B,

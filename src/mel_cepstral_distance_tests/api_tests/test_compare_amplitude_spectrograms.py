@@ -82,6 +82,90 @@ def test_same_spec_returns_zero():
   assert pen == 0
 
 
+def test_removing_silence_from_spec_too_hard_returns_nan_nan():
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="spec", silence_threshold_A=100, silence_threshold_B=0,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="spec", silence_threshold_A=0, silence_threshold_B=100,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="spec", silence_threshold_A=100, silence_threshold_B=100,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+
+def test_removing_silence_from_mel_too_hard_returns_nan_nan():
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="mel", silence_threshold_A=100, silence_threshold_B=0,
+    align_target="mfcc",
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="mel", silence_threshold_A=0, silence_threshold_B=100,
+    align_target="mfcc",
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="mel", silence_threshold_A=100, silence_threshold_B=100,
+    align_target="mfcc",
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+
+def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="mfcc", silence_threshold_A=100, silence_threshold_B=0,
+    align_target="mfcc",
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="mfcc", silence_threshold_A=0, silence_threshold_B=100,
+    align_target="mfcc",
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_B(), 22050,
+    samples_to_ms(512, 22050),
+    remove_silence="mfcc", silence_threshold_A=100, silence_threshold_B=100,
+    align_target="mfcc",
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+
 def test_unequal_n_fft_raises_error():
   sr2, signalB = wavfile.read(AUDIO_B)
   signalB = norm_audio_signal(signalB)

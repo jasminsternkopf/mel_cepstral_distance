@@ -1,6 +1,6 @@
 import pickle
 from pathlib import Path
-from tempfile import NamedTemporaryFile, gettempdir
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
@@ -169,7 +169,7 @@ def test_no_silence_threshold_raises_error():
                         silence_threshold_A=0.01, silence_threshold_B=None)
 
 
-def test_removing_silence_too_hard_returns_nan_nan():
+def test_removing_silence_from_sig_too_hard_returns_nan_nan():
   mcd, pen = compare_audio_files(
     AUDIO_A, AUDIO_B,
     remove_silence="sig", silence_threshold_A=10000, silence_threshold_B=0,
@@ -190,6 +190,84 @@ def test_removing_silence_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="sig", silence_threshold_A=10000, silence_threshold_B=10000,
     align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+
+def test_removing_silence_from_spec_too_hard_returns_nan_nan():
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="spec", silence_threshold_A=100000, silence_threshold_B=-100000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="spec", silence_threshold_A=-100000, silence_threshold_B=100000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="spec", silence_threshold_A=100000, silence_threshold_B=100000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+
+def test_removing_silence_from_mel_too_hard_returns_nan_nan():
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="mel", silence_threshold_A=100000, silence_threshold_B=-100000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="mel", silence_threshold_A=-100000, silence_threshold_B=100000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="mel", silence_threshold_A=100000, silence_threshold_B=100000,
+    align_target="mel", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+
+def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="mfcc", silence_threshold_A=100000, silence_threshold_B=-100000,
+    align_target="mfcc", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="mfcc", silence_threshold_A=-100000, silence_threshold_B=100000,
+    align_target="mfcc", aligning="dtw", norm_audio=False,
+  )
+  assert np.isnan(mcd)
+  assert np.isnan(pen)
+
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_B,
+    remove_silence="mfcc", silence_threshold_A=100000, silence_threshold_B=100000,
+    align_target="mfcc", aligning="dtw", norm_audio=False,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)

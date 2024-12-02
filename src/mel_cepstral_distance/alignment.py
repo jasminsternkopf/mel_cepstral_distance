@@ -16,7 +16,7 @@ def align_X_km(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.comple
   assert X_km_A.shape[1] == X_km_B.shape[1]
   former_len_A = X_km_A.shape[0]
   former_len_B = X_km_B.shape[0]
-  paths: Optional[np.ndarray] = None
+  paths: Optional[npt.NDArray] = None
   if aligning == "dtw":
     _, _, paths = align_2d_sequences_using_dtw(
       amp_to_mag(X_km_A).T,
@@ -35,7 +35,7 @@ def align_X_km(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.comple
   return X_km_A, X_km_B, penalty
 
 
-def align_X_kn(X_kn_A: np.ndarray, X_kn_B: np.ndarray, aligning: Literal["dtw", "pad"]) -> Tuple[np.ndarray, np.ndarray, float]:
+def align_X_kn(X_kn_A: npt.NDArray, X_kn_B: npt.NDArray, aligning: Literal["dtw", "pad"]) -> Tuple[npt.NDArray, npt.NDArray, float]:
   assert aligning in ["dtw", "pad"]
   X_kn_A, X_kn_B, pen = align_frames_2d(X_kn_A.T, X_kn_B.T, aligning)
   X_kn_A = X_kn_A.T
@@ -43,13 +43,13 @@ def align_X_kn(X_kn_A: np.ndarray, X_kn_B: np.ndarray, aligning: Literal["dtw", 
   return X_kn_A, X_kn_B, pen
 
 
-def align_MC(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, aligning: Literal["dtw", "pad"]) -> Tuple[np.ndarray, np.ndarray, float]:
+def align_MC(MC_X_ik: npt.NDArray, MC_Y_ik: npt.NDArray, aligning: Literal["dtw", "pad"]) -> Tuple[npt.NDArray, npt.NDArray, float]:
   assert aligning in ["dtw", "pad"]
   MC_X_ik, MC_Y_ik, pen = align_frames_2d(MC_X_ik, MC_Y_ik, aligning)
   return MC_X_ik, MC_Y_ik, pen
 
 
-def align_frames_2d(seq1: np.ndarray, seq2: np.ndarray, aligning: Literal["dtw", "pad"]) -> Tuple[np.ndarray, np.ndarray, float]:
+def align_frames_2d(seq1: npt.NDArray, seq2: npt.NDArray, aligning: Literal["dtw", "pad"]) -> Tuple[npt.NDArray, npt.NDArray, float]:
   assert aligning in ["dtw", "pad"]
   assert seq1.shape[0] == seq2.shape[0]
   former_len_A = seq1.shape[1]
@@ -65,7 +65,7 @@ def align_frames_2d(seq1: np.ndarray, seq2: np.ndarray, aligning: Literal["dtw",
   return seq1, seq2, penalty
 
 
-def align_2d_sequences_using_dtw(seq_1: np.ndarray, seq_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def align_2d_sequences_using_dtw(seq_1: npt.NDArray, seq_2: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
   assert seq_1.shape[0] == seq_2.shape[
     0], "both sequences must have the same number of features (rows)"
   assert seq_1.shape[1] > 0 and seq_2.shape[1] > 0, "both sequences must have at least one frame"
@@ -86,7 +86,7 @@ def get_penalty(former_length_1: int, former_length_2: int, length_after_equalin
   return penalty
 
 
-def fill_with_zeros_2d(array_1: np.ndarray, array_2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def fill_with_zeros_2d(array_1: npt.NDArray, array_2: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
   if array_1.ndim != 2 or array_2.ndim != 2:
     raise ValueError("Both input arrays must be 2-dimensional")
 

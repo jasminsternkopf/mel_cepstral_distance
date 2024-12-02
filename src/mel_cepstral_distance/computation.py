@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Literal
+from typing import Literal, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -8,7 +8,7 @@ from mel_cepstral_distance.helper import (amp_to_mag, energy_to_bel, get_hz_poin
                                           mag_to_energy)
 
 
-def adjust_win_len_to_n_fft(windowed_frames: np.ndarray, n_fft: int) -> np.ndarray:
+def adjust_win_len_to_n_fft(windowed_frames: npt.NDArray, n_fft: int) -> Tuple[npt.NDArray, int]:
   """ padding or truncating the frames to n_fft """
   win_len = windowed_frames.shape[1]
   if win_len < n_fft:
@@ -20,7 +20,7 @@ def adjust_win_len_to_n_fft(windowed_frames: np.ndarray, n_fft: int) -> np.ndarr
   return windowed_frames, win_len
 
 
-def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window: Literal["hamming", "hanning"]) -> npt.NDArray[np.complex128]:
+def get_X_km(S: npt.NDArray, n_fft: int, win_len: int, hop_length: float, window: Literal["hamming", "hanning"]) -> npt.NDArray[np.complex128]:
   """ 
   Short-Time Fourier Transform (STFT) 
   returns amplitude spectrogram with shape (#frames, n_fft // 2 + 1)
@@ -29,7 +29,7 @@ def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window:
   K = len(S)
   windowed_frames = np.array([
     S[k:k + win_len]
-    for k in range(0, K - win_len, hop_length)
+    for k in np.arange(0, K - win_len, hop_length)
   ])
 
   windowed_frames, adjusted_win_len = adjust_win_len_to_n_fft(windowed_frames, n_fft)
@@ -48,7 +48,7 @@ def get_X_km(S: np.ndarray, n_fft: int, win_len: int, hop_length: float, window:
   return X_km
 
 
-def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) -> np.ndarray:
+def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) -> npt.NDArray:
   ''' calculates a Mel filter bank '''
   # N: number of mel bands
   assert sample_rate > 0
@@ -73,7 +73,7 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) ->
   return w_n_m
 
 
-def norm_w_n_m(w_n_m: np.ndarray, method: Literal["slaney", "sum"], hz_points: np.ndarray) -> np.ndarray:
+def norm_w_n_m(w_n_m: npt.NDArray, method: Literal["slaney", "sum"], hz_points: npt.NDArray) -> npt.NDArray:
   ''' normalizes the Mel filter bank '''
   assert method in ["slaney", "sum"]
   N, n_fft = w_n_m.shape
@@ -91,7 +91,7 @@ def norm_w_n_m(w_n_m: np.ndarray, method: Literal["slaney", "sum"], hz_points: n
   return w_n_m
 
 
-def get_X_kn(X_km: npt.NDArray[np.complex128], w_n_m: np.ndarray) -> np.ndarray:
+def get_X_kn(X_km: npt.NDArray[np.complex128], w_n_m: npt.NDArray) -> npt.NDArray:
   """
   Calculates the energy mel spectrogram (Bel) of the linear amplitude spectrogram
   returns mel spectrogram with shape (#frames, N)
@@ -106,7 +106,7 @@ def get_X_kn(X_km: npt.NDArray[np.complex128], w_n_m: np.ndarray) -> np.ndarray:
   return X_kn_energy_bel
 
 
-def get_MC_X_ik(X_kn: np.ndarray, M: int) -> np.ndarray:
+def get_MC_X_ik(X_kn: npt.NDArray, M: int) -> npt.NDArray:
   """
   Calculates the mel cepstrum coefficients of the mel spectrogram
   returns mel cepstrum with shape (M, #frames)
@@ -126,7 +126,7 @@ def get_MC_X_ik(X_kn: np.ndarray, M: int) -> np.ndarray:
   return MC_X_ik
 
 
-def get_MCD_k(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, s: int, D: int) -> np.ndarray:
+def get_MCD_k(MC_X_ik: npt.NDArray, MC_Y_ik: npt.NDArray, s: int, D: int) -> npt.NDArray:
   """ Calculates the Mel Cepstral Distance (MCD) for each frame """
   assert MC_X_ik.shape == MC_Y_ik.shape
   assert 0 <= s < D
@@ -134,7 +134,7 @@ def get_MCD_k(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, s: int, D: int) -> np.nd
   return MCD_k
 
 
-def get_average_MCD(MCD_k: np.ndarray) -> float:
+def get_average_MCD(MCD_k: npt.NDArray) -> float:
   """" Calculates the average Mel Cepstral Distance (MCD) over all frames """
   assert len(MCD_k.shape) == 1, f"Expected 1D array, but got {MCD_k.shape}"
   assert np.all(MCD_k >= 0), f"Negative values in MCD_k: {MCD_k}"

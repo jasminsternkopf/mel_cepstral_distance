@@ -59,6 +59,13 @@ dependencies = [
 Homepage = "https://github.com/jasminsternkopf/mel_cepstral_distance"
 Issues = "https://github.com/jasminsternkopf/mel_cepstral_distance/issues"
 
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+packages = ["mel_cepstral_distance"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["mel_cepstral_distance", "mel_cepstral_distance.*"]

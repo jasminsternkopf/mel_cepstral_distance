@@ -238,7 +238,7 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
   return mean_mcd_over_all_k, penalty
 
 
-def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_mel_spectrograms(X_kn_A: npt.NDArray, X_kn_B: npt.NDArray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
   if len(X_kn_A) == 0:
     logger = getLogger(__name__)
     logger.warning("mel-spectrogram A is empty")
@@ -319,7 +319,7 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
   return mean_mcd_over_all_k, penalty
 
 
-def compare_mfccs(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", remove_silence: bool = False, silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_mfccs(MC_X_ik: npt.NDArray, MC_Y_ik: npt.NDArray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", remove_silence: bool = False, silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
 
   if MC_X_ik.shape[1] == 0:
     logger = getLogger(__name__)

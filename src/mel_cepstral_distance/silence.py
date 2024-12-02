@@ -7,7 +7,7 @@ import numpy.typing as npt
 from mel_cepstral_distance.helper import amp_to_mag
 
 
-def remove_silence_rms(audio_signal: np.ndarray, threshold_rms: float, min_silence_samples: int):
+def remove_silence_rms(audio_signal: npt.NDArray, threshold_rms: float, min_silence_samples: int):
   assert 0 <= threshold_rms
   if threshold_rms == 0:
     return audio_signal
@@ -40,12 +40,12 @@ def remove_silence_rms(audio_signal: np.ndarray, threshold_rms: float, min_silen
   return np.array([], dtype=np.float32)
 
 
-def get_loudness_vals_X_km(X_km: npt.NDArray[np.complex128]) -> np.ndarray:
-  mel_energy = np.mean(amp_to_mag(X_km), axis=1)
+def get_loudness_vals_X_km(X_km: npt.NDArray[np.complex128]) -> npt.NDArray:
+  mel_energy: npt.NDArray = np.mean(amp_to_mag(X_km), axis=1)
   return mel_energy
 
 
-def detect_non_silence_in_X_km(X_km: npt.NDArray[np.complex128], silence_threshold: float) -> np.ndarray:
+def detect_non_silence_in_X_km(X_km: npt.NDArray[np.complex128], silence_threshold: float) -> npt.NDArray:
   mel_energy = get_loudness_vals_X_km(X_km)
   non_silent_frame_indices = np.where(mel_energy >= silence_threshold)[0]
   return non_silent_frame_indices
@@ -57,29 +57,29 @@ def remove_silence_X_km(X_km: npt.NDArray[np.complex128], silence_threshold: flo
   return X_km
 
 
-def get_loudness_vals_X_kn(X_kn: np.ndarray) -> np.ndarray:
-  mel_energy = np.mean(X_kn, axis=1)
+def get_loudness_vals_X_kn(X_kn: npt.NDArray) -> npt.NDArray:
+  mel_energy: npt.NDArray = np.mean(X_kn, axis=1)
   return mel_energy
 
 
-def detect_non_silence_in_X_kn(X_kn: np.ndarray, silence_threshold: float) -> np.ndarray:
+def detect_non_silence_in_X_kn(X_kn: npt.NDArray, silence_threshold: float) -> npt.NDArray[np.intp]:
   mel_energy = get_loudness_vals_X_kn(X_kn)
   non_silent_frame_indices = np.where(mel_energy >= silence_threshold)[0]
   return non_silent_frame_indices
 
 
-def remove_silence_X_kn(X_kn: np.ndarray, silence_threshold: float) -> np.ndarray:
+def remove_silence_X_kn(X_kn: npt.NDArray, silence_threshold: float) -> npt.NDArray:
   frames = detect_non_silence_in_X_kn(X_kn, silence_threshold)
   X_kn = X_kn[frames, :]
   return X_kn
 
 
-def get_loudness_vals_MC_X_ik(MC_X_ik: np.ndarray) -> np.ndarray:
+def get_loudness_vals_MC_X_ik(MC_X_ik: npt.NDArray) -> npt.NDArray:
   mel_energy = MC_X_ik[0, :]
   return mel_energy
 
 
-def detect_non_silence_in_MC_X_ik(MC_X_ik: np.ndarray, silence_threshold: float) -> np.ndarray:
+def detect_non_silence_in_MC_X_ik(MC_X_ik: npt.NDArray, silence_threshold: float) -> npt.NDArray:
   # MC_X_ik - Shape: (# MFCC coefficients, time_frames)
   assert len(MC_X_ik) > 0, "Expected non-empty MFCC matrix"
   mel_energy = get_loudness_vals_MC_X_ik(MC_X_ik)
@@ -87,7 +87,7 @@ def detect_non_silence_in_MC_X_ik(MC_X_ik: np.ndarray, silence_threshold: float)
   return non_silent_frame_indices
 
 
-def remove_silence_MC_X_ik(MC_X_ik: np.ndarray, silence_threshold: float) -> np.ndarray:
+def remove_silence_MC_X_ik(MC_X_ik: npt.NDArray, silence_threshold: float) -> npt.NDArray:
   frames = detect_non_silence_in_MC_X_ik(MC_X_ik, silence_threshold)
   MC_X_ik = MC_X_ik[:, frames]
   return MC_X_ik

@@ -15,6 +15,7 @@ autoflake = "*"
 twine = "*"
 build = "*"
 tox = "*"
+mypy = "*"
 
 [packages]
 numpy = ">=1.21.6"

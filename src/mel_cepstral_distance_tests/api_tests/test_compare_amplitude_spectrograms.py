@@ -32,7 +32,8 @@ def test_aligning_with_pad_returns_same_for_spec_mel_mfcc():
   for align_target in ["spec", "mel", "mfcc"]:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(), 22050,
-      samples_to_ms(512, 22050), align_target=align_target, aligning="pad")
+      samples_to_ms(512, 22050), align_target=align_target, aligning="pad",
+    )
     res.append((mcd, pen))
   np.testing.assert_almost_equal(res[0], res[1])
   np.testing.assert_almost_equal(res[0], res[2])
@@ -63,12 +64,14 @@ def test_result_changes_after_silence_removal_before_padding_mfcc():
       samples_to_ms(512, 22050),
     align_target="mfcc", aligning="pad",
     remove_silence="mel", silence_threshold_A=0.01, silence_threshold_B=0.01,
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
   mcd2, pen2 = compare_amplitude_spectrograms(
     get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
     align_target="mfcc", aligning="pad",
     remove_silence="no",
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
 
   assert not np.allclose(mcd, mcd2)
@@ -76,8 +79,12 @@ def test_result_changes_after_silence_removal_before_padding_mfcc():
 
 
 def test_same_spec_returns_zero():
-  mcd, pen = compare_amplitude_spectrograms(get_X_km_A(), get_X_km_A(), 22050,
-                                            samples_to_ms(512, 22050))
+  mcd, pen = compare_amplitude_spectrograms(
+    get_X_km_A(), get_X_km_A(), 22050,
+    samples_to_ms(512, 22050),
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
+    align_target="mfcc", aligning="pad",
+  )
   assert mcd == 0
   assert pen == 0
 
@@ -87,6 +94,8 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="spec", silence_threshold_A=100, silence_threshold_B=0,
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
+    align_target="mfcc", aligning="pad",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -95,6 +104,8 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="spec", silence_threshold_A=0, silence_threshold_B=100,
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
+    align_target="mfcc", aligning="pad",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -103,6 +114,8 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="spec", silence_threshold_A=100, silence_threshold_B=100,
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
+    align_target="mfcc", aligning="pad",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -113,7 +126,8 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mel", silence_threshold_A=100, silence_threshold_B=0,
-    align_target="mfcc",
+    align_target="mfcc", aligning="pad",
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -122,7 +136,8 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mel", silence_threshold_A=0, silence_threshold_B=100,
-    align_target="mfcc",
+    align_target="mfcc", aligning="pad",
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -131,7 +146,8 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mel", silence_threshold_A=100, silence_threshold_B=100,
-    align_target="mfcc",
+    align_target="mfcc", aligning="pad",
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -143,6 +159,7 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     samples_to_ms(512, 22050),
     remove_silence="mfcc", silence_threshold_A=100, silence_threshold_B=0,
     align_target="mfcc",
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -151,7 +168,8 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mfcc", silence_threshold_A=0, silence_threshold_B=100,
-    align_target="mfcc",
+    align_target="mfcc", aligning="pad",
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -160,7 +178,8 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mfcc", silence_threshold_A=100, silence_threshold_B=100,
-    align_target="mfcc",
+    align_target="mfcc", aligning="pad",
+    D=16, s=1, N=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -172,15 +191,14 @@ def test_unequal_n_fft_raises_error():
   X_km_B = get_X_km(signalB, 1024, 1024, 128, "hamming")
 
   with pytest.raises(ValueError):
-    compare_amplitude_spectrograms(get_X_km_A(), X_km_B, 22050,
-                                   samples_to_ms(511, 22050))
+    compare_amplitude_spectrograms(
+      get_X_km_A(), X_km_B, 22050, samples_to_ms(511, 22050))
 
 
 def test_no_freq_bins_raises_error():
   X_km = np.empty((123, 0))
   with pytest.raises(ValueError):
-    compare_amplitude_spectrograms(X_km, X_km, 22050,
-                                   samples_to_ms(512, 22050))
+    compare_amplitude_spectrograms(X_km, X_km, 22050, samples_to_ms(512, 22050))
 
 
 def test_empty_spec_returns_nan_nan():

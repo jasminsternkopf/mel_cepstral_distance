@@ -43,7 +43,9 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
   sr1, signalA = wavfile.read(audio_A)
   sr2, signalB = wavfile.read(audio_B)
 
-  # convert to float betweet 0 and 1
+  if signalA.dtype != signalB.dtype:
+    logger = getLogger(__name__)
+    logger.warning(f"audio A and B have different data types ({signalA.dtype} != {signalB.dtype})")
 
   if len(signalA) == 0:
     logger = getLogger(__name__)
@@ -54,10 +56,6 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
     logger = getLogger(__name__)
     logger.warning("audio B is empty")
     return np.nan, np.nan
-
-  if signalA.dtype != signalB.dtype:
-    logger = getLogger(__name__)
-    logger.warning(f"audio A and B have different data types ({signalA.dtype} != {signalB.dtype})")
 
   if sample_rate is None:
     sample_rate = min(sr1, sr2)
@@ -253,6 +251,9 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
 
   if not X_kn_A.shape[1] == X_kn_B.shape[1]:
     raise ValueError("both mel-spectrograms must have the same number of mel-bands")
+
+  if aligning not in ["pad", "dtw"]:
+    raise ValueError("aligning must be 'pad' or 'dtw'")
 
   if remove_silence not in ["no", "mel", "mfcc"]:
     raise ValueError("remove_silence must be 'no', 'mel' or 'mfcc'")

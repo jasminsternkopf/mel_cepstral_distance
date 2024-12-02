@@ -55,6 +55,10 @@ def compare_audio_files(audio_A: Path, audio_B: Path, *, sample_rate: Optional[i
     logger.warning("audio B is empty")
     return np.nan, np.nan
 
+  if signalA.dtype != signalB.dtype:
+    logger = getLogger(__name__)
+    logger.warning(f"audio A and B have different data types ({signalA.dtype} != {signalB.dtype})")
+
   if sample_rate is None:
     sample_rate = min(sr1, sr2)
 
@@ -156,7 +160,7 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
   if get_n_fft_bins(n_fft_samples) != n_fft_bins:
     raise ValueError(
       f"n_fft (in samples) // 2 + 1 must match the number of frequency bins in the spectrogram but got {n_fft_samples // 2 + 1} != {n_fft_bins}")
-  assert n_fft > 0
+  assert n_fft_samples > 0
   assert sample_rate > 0
 
   if aligning not in ["pad", "dtw"]:

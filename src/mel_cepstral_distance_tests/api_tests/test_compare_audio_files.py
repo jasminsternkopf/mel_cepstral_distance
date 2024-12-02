@@ -7,7 +7,7 @@ import pytest
 from scipy.io import wavfile
 
 from mel_cepstral_distance.api import compare_audio_files
-from mel_cepstral_distance.helper import samples_to_ms
+from mel_cepstral_distance.helper import resample_if_necessary, samples_to_ms
 
 TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
 
@@ -15,10 +15,208 @@ AUDIO_A = TEST_DIR / "A.wav"
 AUDIO_B = TEST_DIR / "B.wav"
 
 
+def test_uint8_8bitPCM():
+  with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_a_tmp:
+    audio_a_tmp_path = Path(file_a_tmp.name)
+
+    sr_a, audio_a = wavfile.read(AUDIO_A)
+    assert sr_a == 22050
+    assert audio_a.dtype == np.int16
+
+    norm_audio = audio_a / 32768.0
+    new_audio = ((norm_audio + 1) * 127.5).astype(np.uint8)
+    wavfile.write(audio_a_tmp_path, 22050, new_audio)
+
+    with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_b_tmp:
+      audio_b_tmp_path = Path(file_b_tmp.name)
+
+      sr_b, audio_b = wavfile.read(AUDIO_B)
+      assert sr_b == 22050
+      assert audio_b.dtype == np.int16
+
+      norm_audio = audio_b / 32768.0
+      new_audio = ((norm_audio + 1) * 127.5).astype(np.uint8)
+      wavfile.write(audio_b_tmp_path, 22050, new_audio)
+
+      test_cases = [
+        (AUDIO_A, AUDIO_B),  # 16 bit vs 8 bit
+        (AUDIO_A, audio_b_tmp_path),  # 16 bit vs 8 bit
+        (audio_a_tmp_path, AUDIO_B),  # 16 bit vs 8 bit
+        (audio_a_tmp_path, audio_b_tmp_path),  # 16 bit vs 8 bit
+      ]
+
+      test_results = []
+
+      for a, b in test_cases:
+        mcd, pen = compare_audio_files(
+          a, b,
+          sample_rate=22050, align_target="mel", aligning="dtw", remove_silence="no",
+          norm_audio=False, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
+        )
+        test_results.append([mcd, pen])
+
+      assert_results = [
+        [7.64104558175767, 0.14414414414414423],
+        [15.955726033561426, 0.16617210682492578],
+        [19.39442751788282, 0.06269592476489039],
+        [3.8681248602509037, 0.33870967741935476],
+      ]
+
+      np.testing.assert_almost_equal(test_results, assert_results)
+
+
+def test_float32_32bitFloat():
+  with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_a_tmp:
+    audio_a_tmp_path = Path(file_a_tmp.name)
+
+    sr_a, audio_a = wavfile.read(AUDIO_A)
+    assert sr_a == 22050
+    assert audio_a.dtype == np.int16
+
+    norm_audio = audio_a / 32768.0
+    new_audio = norm_audio.astype(np.float32)
+    wavfile.write(audio_a_tmp_path, 22050, new_audio)
+
+    with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_b_tmp:
+      audio_b_tmp_path = Path(file_b_tmp.name)
+
+      sr_b, audio_b = wavfile.read(AUDIO_B)
+      assert sr_b == 22050
+      assert audio_b.dtype == np.int16
+
+      norm_audio = audio_b / 32768.0
+      new_audio = norm_audio.astype(np.float32)
+      wavfile.write(audio_b_tmp_path, 22050, new_audio)
+
+      test_cases = [
+        (AUDIO_A, AUDIO_B),  # 16 bit vs 32 bit
+        (AUDIO_A, audio_b_tmp_path),  # 16 bit vs 32 bit
+        (audio_a_tmp_path, AUDIO_B),  # 16 bit vs 32 bit
+        (audio_a_tmp_path, audio_b_tmp_path),  # 16 bit vs 32 bit
+      ]
+
+      test_results = []
+
+      for a, b in test_cases:
+        mcd, pen = compare_audio_files(
+          a, b,
+          sample_rate=22050, align_target="mel", aligning="dtw", remove_silence="no",
+          norm_audio=False, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
+        )
+        test_results.append([mcd, pen])
+
+      assert_results = [
+        [7.64104558175767, 0.14414414414414423],
+        [8.386707066033125, 0.044303797468354444],
+        [8.402813719266112, 0.044303797468354444],
+        [7.641045506653429, 0.14414414414414423],
+      ]
+
+      np.testing.assert_almost_equal(test_results, assert_results)
+
+
+def test_int32_32bitPCM():
+  with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_a_tmp:
+    audio_a_tmp_path = Path(file_a_tmp.name)
+
+    sr_a, audio_a = wavfile.read(AUDIO_A)
+    assert sr_a == 22050
+    assert audio_a.dtype == np.int16
+
+    norm_audio = audio_a / 32768.0
+    new_audio = (norm_audio * 2147483647).astype(np.int32)
+    wavfile.write(audio_a_tmp_path, 22050, new_audio)
+
+    with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_b_tmp:
+      audio_b_tmp_path = Path(file_b_tmp.name)
+
+      sr_b, audio_b = wavfile.read(AUDIO_B)
+      assert sr_b == 22050
+      assert audio_b.dtype == np.int16
+
+      norm_audio = audio_b / 32768.0
+      new_audio = norm_audio.astype(np.float32)
+      wavfile.write(audio_b_tmp_path, 22050, new_audio)
+
+      test_cases = [
+        (AUDIO_A, AUDIO_B),  # 16 bit vs 32 bit
+        (AUDIO_A, audio_b_tmp_path),  # 16 bit vs 32 bit
+        (audio_a_tmp_path, AUDIO_B),  # 16 bit vs 32 bit
+        (audio_a_tmp_path, audio_b_tmp_path),  # 16 bit vs 32 bit
+      ]
+
+      test_results = []
+
+      for a, b in test_cases:
+        mcd, pen = compare_audio_files(
+          a, b,
+          sample_rate=22050, align_target="mel", aligning="dtw", remove_silence="no",
+          norm_audio=False, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
+        )
+        test_results.append([mcd, pen])
+
+      assert_results = [
+        [7.64104558175767, 0.14414414414414423],
+        [8.386707066033125, 0.044303797468354444],
+        [8.386707040162092, 0.044303797468354444],
+        [8.386707040119276, 0.044303797468354444],
+      ]
+
+      np.testing.assert_almost_equal(test_results, assert_results)
+
+
+def test_diff_sr_resamples_to_smaller_sr():
+  new_sr = 16000
+  assert_mcd = 7.7502037992418265
+  assert_pen = 0.16913946587537088
+
+  # create tmp file with different sample rate
+  with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_a_tmp:
+    audio_a_tmp_path = Path(file_a_tmp.name)
+
+    sr_a, audio_a = wavfile.read(AUDIO_A)
+    assert sr_a == 22050
+
+    resampled_audio = resample_if_necessary(audio_a, sr_a, new_sr)
+    wavfile.write(audio_a_tmp_path, new_sr, resampled_audio)
+
+    with NamedTemporaryFile(suffix=".wav", delete=True, prefix="test_compare_audio_files") as file_b_tmp:
+      audio_b_tmp_path = Path(file_b_tmp.name)
+
+      sr_b, audio_b = wavfile.read(AUDIO_B)
+      assert sr_b == 22050
+
+      resampled_audio = resample_if_necessary(audio_b, sr_b, new_sr)
+      wavfile.write(audio_b_tmp_path, new_sr, resampled_audio)
+      for a, b, should_be_assert_result in [
+          (AUDIO_A, audio_b_tmp_path, True),  # 16000 Hz vs 22050 Hz
+          (audio_a_tmp_path, AUDIO_B, True),  # 22050 Hz vs 16000 Hz
+          (audio_a_tmp_path, audio_b_tmp_path, True),  # 16000 Hz vs 16000 Hz
+          (AUDIO_A, AUDIO_B, False),  # 22050 Hz vs 22050 Hz
+        ]:
+        # set default params
+        mcd, pen = compare_audio_files(
+          a, b,
+          sample_rate=None, align_target="mel", aligning="dtw", remove_silence="no",
+          norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=new_sr // 2, n_fft=32, win_len=32, hop_len=16, window="hanning"
+        )
+
+        if should_be_assert_result:
+          np.testing.assert_almost_equal(mcd, assert_mcd)
+          np.testing.assert_almost_equal(pen, assert_pen)
+        else:
+          with np.testing.assert_raises(AssertionError):
+            np.testing.assert_almost_equal(mcd, assert_mcd)
+            np.testing.assert_almost_equal(pen, assert_pen)
+
+
 def test_aligning_with_pad_returns_same_for_spec_mel_mfcc():
   res = []
   for align_target in ["spec", "mel", "mfcc"]:
-    mcd, pen = compare_audio_files(AUDIO_A, AUDIO_B, align_target=align_target, aligning="pad")
+    mcd, pen = compare_audio_files(
+      AUDIO_A, AUDIO_B, align_target=align_target, aligning="pad",
+        sample_rate=22050, remove_silence="no",
+        norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning")
     res.append((mcd, pen))
   np.testing.assert_almost_equal(res[0], res[1])
   np.testing.assert_almost_equal(res[0], res[2])
@@ -30,11 +228,13 @@ def test_result_changes_after_silence_removal_before_padding_spec():
     AUDIO_A, AUDIO_B,
     align_target="spec", aligning="pad",
     remove_silence="sig", silence_threshold_A=0.01, silence_threshold_B=0.01,
+    sample_rate=22050, norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
   )
   mcd2, pen2 = compare_audio_files(
     AUDIO_A, AUDIO_B,
     align_target="spec", aligning="pad",
     remove_silence="no",
+    sample_rate=22050, norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
   )
 
   assert not np.allclose(mcd, mcd2)
@@ -46,11 +246,13 @@ def test_result_changes_after_silence_removal_before_padding_mel():
     AUDIO_A, AUDIO_B,
     align_target="mel", aligning="pad",
     remove_silence="spec", silence_threshold_A=0.01, silence_threshold_B=0.01,
+    sample_rate=22050, norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
   )
   mcd2, pen2 = compare_audio_files(
     AUDIO_A, AUDIO_B,
     align_target="mel", aligning="pad",
     remove_silence="no",
+    sample_rate=22050, norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
   )
 
   assert not np.allclose(mcd, mcd2)
@@ -62,11 +264,13 @@ def test_result_changes_after_silence_removal_before_padding_mfcc():
     AUDIO_A, AUDIO_B,
     align_target="mfcc", aligning="pad",
     remove_silence="mel", silence_threshold_A=0.01, silence_threshold_B=0.01,
+    sample_rate=22050, norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
   )
   mcd2, pen2 = compare_audio_files(
     AUDIO_A, AUDIO_B,
     align_target="mfcc", aligning="pad",
     remove_silence="no",
+    sample_rate=22050, norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
   )
 
   assert not np.allclose(mcd, mcd2)
@@ -74,7 +278,10 @@ def test_result_changes_after_silence_removal_before_padding_mfcc():
 
 
 def test_same_file_returns_zero():
-  mcd, pen = compare_audio_files(AUDIO_A, AUDIO_A)
+  mcd, pen = compare_audio_files(
+    AUDIO_A, AUDIO_A, align_target="mel", aligning="dtw", remove_silence="no",
+    sample_rate=22050, norm_audio=True, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning"
+  )
   assert mcd == 0
   assert pen == 0
 
@@ -174,6 +381,7 @@ def test_removing_silence_from_sig_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="sig", silence_threshold_A=10000, silence_threshold_B=0,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -182,6 +390,7 @@ def test_removing_silence_from_sig_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="sig", silence_threshold_A=0, silence_threshold_B=10000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -190,6 +399,7 @@ def test_removing_silence_from_sig_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="sig", silence_threshold_A=10000, silence_threshold_B=10000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -200,6 +410,7 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="spec", silence_threshold_A=100000, silence_threshold_B=-100000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -208,6 +419,7 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="spec", silence_threshold_A=-100000, silence_threshold_B=100000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -216,6 +428,7 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="spec", silence_threshold_A=100000, silence_threshold_B=100000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -226,6 +439,7 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="mel", silence_threshold_A=100000, silence_threshold_B=-100000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -234,6 +448,7 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="mel", silence_threshold_A=-100000, silence_threshold_B=100000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -242,6 +457,7 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="mel", silence_threshold_A=100000, silence_threshold_B=100000,
     align_target="mel", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -252,6 +468,7 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="mfcc", silence_threshold_A=100000, silence_threshold_B=-100000,
     align_target="mfcc", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -260,6 +477,7 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="mfcc", silence_threshold_A=-100000, silence_threshold_B=100000,
     align_target="mfcc", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -268,6 +486,7 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     AUDIO_A, AUDIO_B,
     remove_silence="mfcc", silence_threshold_A=100000, silence_threshold_B=100000,
     align_target="mfcc", aligning="dtw", norm_audio=False,
+    sample_rate=22050, N=20, s=1, D=16, fmin=0, fmax=8000, n_fft=32, win_len=32, hop_len=16, window="hanning",
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -461,18 +680,24 @@ def test_empty_audio_returns_nan_nan():
     data = np.array([], dtype=np.int16)
     wavfile.write(empty_audio_path, 22050, data)
 
-    mcd, pen = compare_audio_files(AUDIO_A, empty_audio_path, sample_rate=22050, n_fft=512, win_len=512, hop_len=512, window="hanning",
-                                   fmin=0, fmax=8000, N=80, s=1, D=13, norm_audio=True, align_target="mel", aligning="dtw", remove_silence="no")
+    mcd, pen = compare_audio_files(
+      AUDIO_A, empty_audio_path, sample_rate=22050, n_fft=512, win_len=512, hop_len=512, window="hanning",
+      fmin=0, fmax=8000, N=80, s=1, D=13, norm_audio=True, align_target="mel", aligning="dtw", remove_silence="no"
+    )
     assert np.isnan(mcd)
     assert np.isnan(pen)
 
-    mcd, pen = compare_audio_files(empty_audio_path, AUDIO_B, sample_rate=22050, n_fft=512, win_len=512, hop_len=512, window="hanning",
-                                   fmin=0, fmax=8000, N=80, s=1, D=13, norm_audio=True, align_target="mel", aligning="dtw", remove_silence="no")
+    mcd, pen = compare_audio_files(
+      empty_audio_path, AUDIO_B, sample_rate=22050, n_fft=512, win_len=512, hop_len=512, window="hanning",
+      fmin=0, fmax=8000, N=80, s=1, D=13, norm_audio=True, align_target="mel", aligning="dtw", remove_silence="no"
+    )
     assert np.isnan(mcd)
     assert np.isnan(pen)
 
-    mcd, pen = compare_audio_files(empty_audio_path, empty_audio_path, sample_rate=22050, n_fft=512, win_len=512, hop_len=512, window="hanning",
-                                   fmin=0, fmax=8000, N=80, s=1, D=13, norm_audio=True, align_target="mel", aligning="dtw", remove_silence="no")
+    mcd, pen = compare_audio_files(
+      empty_audio_path, empty_audio_path, sample_rate=22050, n_fft=512, win_len=512, hop_len=512, window="hanning",
+      fmin=0, fmax=8000, N=80, s=1, D=13, norm_audio=True, align_target="mel", aligning="dtw", remove_silence="no"
+    )
     assert np.isnan(mcd)
     assert np.isnan(pen)
 
@@ -552,6 +777,7 @@ def create_sil_outputs():
       remove_silence=remove_silence,
       silence_threshold_A=sil_a,
       silence_threshold_B=sil_b,
+      N=20, s=1, D=16, fmin=0, fmax=22050 // 2, window="hanning",
     )
     outputs.append((remove_silence, sil_a, sil_b, aligning, target, mcd, pen))
   for vals in outputs:
@@ -574,6 +800,7 @@ def test_sil_outputs():
       remove_silence=remove_silence,
       silence_threshold_A=sil_a,
       silence_threshold_B=sil_b,
+      N=20, s=1, D=16, fmin=0, fmax=22050 // 2, window="hanning",
     )
     np.testing.assert_almost_equal(mcd, expected_mcd)
     np.testing.assert_almost_equal(pen, expected_pen)

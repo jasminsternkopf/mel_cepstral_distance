@@ -116,7 +116,7 @@ def test_large_values_input():
 
 
 def test_zero_input():
-  X_km = np.zeros((30, 3))
+  X_km = np.zeros((30, 3), dtype=np.complex128)
   sample_rate = 16000
   N = 2
   n_fft = 4

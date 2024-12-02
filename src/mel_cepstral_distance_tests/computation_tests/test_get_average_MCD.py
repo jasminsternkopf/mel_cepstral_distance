@@ -18,7 +18,7 @@ def test_multiple_values():
 
 
 def test_empty_array():
-  MCD_k = np.array([])
+  MCD_k: np.ndarray = np.array([])
   result = get_average_MCD(MCD_k)
   assert np.isnan(result), f"Expected NaN for empty input, but got {result}."
 

@@ -196,13 +196,13 @@ def test_unequal_n_fft_raises_error():
 
 
 def test_no_freq_bins_raises_error():
-  X_km = np.empty((123, 0))
+  X_km = np.empty((123, 0), dtype=np.complex128)
   with pytest.raises(ValueError):
     compare_amplitude_spectrograms(X_km, X_km, 22050, samples_to_ms(512, 22050))
 
 
 def test_empty_spec_returns_nan_nan():
-  X_km_empty = np.empty((0, get_n_fft_bins(512)))
+  X_km_empty = np.empty((0, get_n_fft_bins(512)), dtype=np.complex128)
   mcd, pen = compare_amplitude_spectrograms(X_km_empty, get_X_km_B(), 22050,
                                             samples_to_ms(512, 22050))
   assert np.isnan(mcd)

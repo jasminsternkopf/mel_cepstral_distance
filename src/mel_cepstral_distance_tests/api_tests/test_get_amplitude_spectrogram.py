@@ -7,7 +7,7 @@ import pytest
 from scipy.io import wavfile
 
 from mel_cepstral_distance.api import get_amplitude_spectrogram
-from mel_cepstral_distance.helper import resample_if_necessary, samples_to_ms
+from mel_cepstral_distance.helper import samples_to_ms
 
 TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
 

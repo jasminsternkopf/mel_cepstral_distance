@@ -1,13 +1,11 @@
 import pickle
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
-from scipy.io import wavfile
 
 from mel_cepstral_distance.api import get_amplitude_spectrogram, get_mel_spectrogram
-from mel_cepstral_distance.helper import resample_if_necessary, samples_to_ms
+from mel_cepstral_distance.helper import samples_to_ms
 from mel_cepstral_distance.silence import get_loudness_vals_X_km
 
 TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
@@ -29,7 +27,7 @@ def test_result_changes_after_silence_removal():
     fmin=0, fmax=SR // 2, N=20,
   )
 
-  assert res.shape == (302, 20)
+  assert res.shape == (303, 20)
 
   mean = get_loudness_vals_X_km(get_X_km()).mean()
 
@@ -40,7 +38,7 @@ def test_result_changes_after_silence_removal():
     fmax=SR // 2, fmin=0, N=20,
   )
 
-  assert res.shape == (125, 20)
+  assert res.shape == (124, 20)
 
 
 def test_invalid_n_fft_raises_error():

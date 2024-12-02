@@ -427,8 +427,7 @@ def create_other_outputs():
   for fmin, fmax, n, s, d in targets:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(),
-      sample_rate=22050,
-      n_fft=samples_to_ms(512, 22050),
+      22050, samples_to_ms(512, 22050),
       fmin=fmin,
       fmax=fmax,
       N=n,
@@ -498,8 +497,7 @@ def create_sil_outputs():
   for remove_silence, sil_a, sil_b, aligning, target in targets:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(),
-      sample_rate=22050,
-      n_fft=samples_to_ms(512, 22050),
+      22050, samples_to_ms(512, 22050),
       align_target=target,
       aligning=aligning,
       remove_silence=remove_silence,
@@ -519,8 +517,7 @@ def test_sil_outputs():
   for remove_silence, sil_a, sil_b, aligning, target, expected_mcd, expected_pen in outputs:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(),
-      sample_rate=22050,
-      n_fft=samples_to_ms(512, 22050),
+      22050, samples_to_ms(512, 22050),
       align_target=target,
       aligning=aligning,
       remove_silence=remove_silence,

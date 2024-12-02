@@ -7,7 +7,7 @@ from scipy.io import wavfile
 
 from mel_cepstral_distance.api import compare_mel_spectrograms
 from mel_cepstral_distance.computation import get_w_n_m, get_X_km, get_X_kn
-from mel_cepstral_distance.helper import get_n_fft_bins, norm_audio_signal, samples_to_ms
+from mel_cepstral_distance.helper import norm_audio_signal
 
 TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
 
@@ -40,7 +40,7 @@ def test_aligning_with_pad_returns_same_for_mel_mfcc():
   for align_target in ["mel", "mfcc"]:
     mcd, pen = compare_mel_spectrograms(
       get_X_kn_A(), get_X_kn_B(), align_target=align_target, aligning="pad",
-        D=16, s=1,
+        D=16, s=1, remove_silence="no",
     )
     res.append((mcd, pen))
   np.testing.assert_almost_equal(res[0], res[1])

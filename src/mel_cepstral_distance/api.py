@@ -320,6 +320,7 @@ def compare_mel_spectrograms(X_kn_A: np.ndarray, X_kn_B: np.ndarray, *, s: int =
 
 
 def compare_mfccs(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", remove_silence: bool = False, silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+
   if MC_X_ik.shape[1] == 0:
     logger = getLogger(__name__)
     logger.warning("MFCCs A are empty")
@@ -332,6 +333,11 @@ def compare_mfccs(MC_X_ik: np.ndarray, MC_Y_ik: np.ndarray, *, s: int = 1, D: in
 
   if not MC_X_ik.shape[0] == MC_Y_ik.shape[0]:
     raise ValueError("both MFCCs must have the same number of coefficients")
+
+  N = MC_X_ik.shape[0]
+
+  if D > N:
+    raise ValueError(f"D must be <= number of MFCC coefficients ({N})")
 
   if not 0 <= s < D:
     raise ValueError("s must be in [0, D)")

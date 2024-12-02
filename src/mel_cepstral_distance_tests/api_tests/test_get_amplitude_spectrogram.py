@@ -1,6 +1,7 @@
 import pickle
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pytest
@@ -217,7 +218,7 @@ def create_outputs():
   size512 = samples_to_ms(512, 22050)
   size128 = samples_to_ms(128, 22050)
 
-  targets = []
+  targets: List[Tuple[int, float, float, float, str, bool, Optional[float]]] = []
 
   # sample rate
   for sr in [None, 22050, 16000, 8000, 4000]:

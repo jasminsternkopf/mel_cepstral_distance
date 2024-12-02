@@ -98,6 +98,8 @@ def get_amplitude_spectrogram(audio: Path, *, sample_rate: Optional[int] = None,
 
 
 def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, N: int = 20, fmin: int = 0, fmax: Optional[int] = None, remove_silence: bool = False, silence_threshold: Optional[float] = None) -> npt.NDArray:
+  # amp_spec = X_km
+
   if not N > 0:
     raise ValueError("N must be > 0")
 
@@ -107,23 +109,20 @@ def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, 
     empty_mel_spec = np.empty((0, N), dtype=np.float64)
     return empty_mel_spec
 
-  if not 0 < fmin < fmax:
-    raise ValueError(f"fmin must be in (0, fmax), i.e., (0, {fmax})")
-
   if not 0 < n_fft:
     raise ValueError("n_fft must be > 0")
 
   if not 0 < sample_rate:
     raise ValueError("sample_rate must be > 0")
 
-  if not 0 < fmin:
-    raise ValueError("fmin must be > 0")
-
   if fmax is not None:
     if not 0 < fmax <= sample_rate // 2:
       raise ValueError(f"fmax must be in (0, sample_rate // 2], i.e., (0, {sample_rate//2}]")
   else:
     fmax = sample_rate // 2
+
+  if not 0 <= fmin < fmax:
+    raise ValueError(f"fmin must be in [0, fmax), i.e., [0, {fmax})")
 
   n_fft_samples = ms_to_samples(n_fft, sample_rate)
   if get_n_fft_bins(n_fft_samples) != amp_spec.shape[1]:
@@ -133,9 +132,6 @@ def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, 
   if remove_silence:
     if silence_threshold is None:
       raise ValueError("silence_threshold must be set")
-
-    if not 0 <= silence_threshold:
-      raise ValueError("silence_threshold must be greater than or equal to 0 RMS")
 
     amp_spec = remove_silence_X_km(amp_spec, silence_threshold)
 

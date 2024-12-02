@@ -17,7 +17,7 @@ def resample_if_necessary(audio: npt.NDArray, sr: int, target_sr: int) -> npt.ND
   if sr == target_sr:
     return audio
   target_num_samples = int(len(audio) * target_sr / sr)
-  resampled_audio = resample(
+  resampled_audio: npt.NDArray = resample(
     audio, target_num_samples,
     axis=0, window=None, domain='time'
   )

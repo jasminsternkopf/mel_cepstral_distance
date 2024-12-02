@@ -208,7 +208,7 @@ def compare_amplitude_spectrograms(X_km_A: npt.NDArray[np.complex128], X_km_B: n
 
     remove_silence = "no"
 
-  penalty: float = None
+  penalty: float
   aligned_here: bool = False
   if align_target == "spec":
     X_km_A, X_km_B, penalty = align_X_km(X_km_A, X_km_B, aligning)
@@ -290,7 +290,7 @@ def compare_mel_spectrograms(X_kn_A: npt.NDArray, X_kn_B: npt.NDArray, *, s: int
 
     remove_silence = "no"
 
-  penalty: float = None
+  penalty: float
   aligned_here: bool = False
   if align_target == "mel":
     X_kn_A, X_kn_B, penalty = align_X_kn(X_kn_A, X_kn_B, aligning)

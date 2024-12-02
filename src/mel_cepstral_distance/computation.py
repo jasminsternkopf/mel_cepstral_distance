@@ -121,7 +121,7 @@ def get_MC_X_ik(X_kn: npt.NDArray, M: int) -> npt.NDArray:
   i = n.reshape(-1, 1)  # Reshape for broadcasting
   cos_terms = np.cos(i * (n - 0.5) * np.pi / M)  # Precompute cosine terms
 
-  MC_X_ik = cos_terms @ X_kn[:, :M].T
+  MC_X_ik: npt.NDArray = cos_terms @ X_kn[:, :M].T
 
   return MC_X_ik
 
@@ -130,7 +130,7 @@ def get_MCD_k(MC_X_ik: npt.NDArray, MC_Y_ik: npt.NDArray, s: int, D: int) -> npt
   """ Calculates the Mel Cepstral Distance (MCD) for each frame """
   assert MC_X_ik.shape == MC_Y_ik.shape
   assert 0 <= s < D
-  MCD_k = np.linalg.norm(MC_X_ik[s:D, :] - MC_Y_ik[s:D, :], axis=0)
+  MCD_k: npt.NDArray = np.linalg.norm(MC_X_ik[s:D, :] - MC_Y_ik[s:D, :], axis=0)
   return MCD_k
 
 
@@ -138,5 +138,5 @@ def get_average_MCD(MCD_k: npt.NDArray) -> float:
   """" Calculates the average Mel Cepstral Distance (MCD) over all frames """
   assert len(MCD_k.shape) == 1, f"Expected 1D array, but got {MCD_k.shape}"
   assert np.all(MCD_k >= 0), f"Negative values in MCD_k: {MCD_k}"
-  mean_mcd_over_all_k = np.mean(MCD_k)
+  mean_mcd_over_all_k: float = np.mean(MCD_k)
   return mean_mcd_over_all_k

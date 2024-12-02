@@ -17,6 +17,39 @@ AUDIO_B = TEST_DIR / "B.wav"
 N = 80
 
 
+def test_zero_dim_spec_raise_error():
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(get_X_kn_A(), np.empty((305, 0)))
+
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(np.empty((305, 0)), get_X_kn_A())
+
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(np.empty((305, 0)), np.empty((305, 0)))
+
+
+def test_one_dim_spec_raise_error():
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(get_X_kn_A(), np.empty((305)))
+
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(np.empty((305)), get_X_kn_A())
+
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(np.empty((305)), np.empty((305)))
+
+
+def test_three_dim_spec_raise_error():
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(get_X_kn_A(), np.empty((305, 20, 10)))
+
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(np.empty((305, 20, 10)), get_X_kn_A())
+
+  with pytest.raises(ValueError):
+    compare_mel_spectrograms(np.empty((305, 20, 10)), np.empty((305, 20, 10)))
+
+
 def get_X_kn_A():
   sr1, signalA = wavfile.read(AUDIO_A)
   signalA = norm_audio_signal(signalA)

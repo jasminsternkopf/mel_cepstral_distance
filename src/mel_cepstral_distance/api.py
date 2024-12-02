@@ -100,6 +100,9 @@ def get_amplitude_spectrogram(audio: Path, *, sample_rate: Optional[int] = None,
 def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, N: int = 20, fmin: int = 0, fmax: Optional[int] = None, remove_silence: bool = False, silence_threshold: Optional[float] = None) -> npt.NDArray:
   # amp_spec = X_km
 
+  if len(amp_spec.shape) != 2:
+    raise ValueError(f"amplitude spectrogram must have 2 dimensions but got {len(amp_spec.shape)}")
+
   if not N > 0:
     raise ValueError("N must be > 0")
 
@@ -108,6 +111,9 @@ def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, 
     logger.warning("spectrogram is empty")
     empty_mel_spec = np.empty((0, N), dtype=np.float64)
     return empty_mel_spec
+
+  if amp_spec.shape[1] == 0:
+    raise ValueError("spectrogram must have at least 1 frequency bin")
 
   if not 0 < n_fft:
     raise ValueError("n_fft must be > 0")
@@ -147,25 +153,28 @@ def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, 
 
 
 def get_mfccs(mel_spec: npt.NDArray, /, *, remove_silence: bool = False, silence_threshold: Optional[float] = None) -> npt.NDArray:
+  if len(mel_spec.shape) != 2:
+    raise ValueError(f"mel-spectrogram must have 2 dimensions but got {len(mel_spec.shape)}")
+
+  if mel_spec.shape[1] == 0:
+    raise ValueError("mel-spectrogram must have at least 1 mel-band")
+
   if mel_spec.shape[0] == 0:
     logger = getLogger(__name__)
     logger.warning("mel-spectrogram is empty")
-    empty_mfccs = np.empty((0, mel_spec.shape[1]), dtype=np.float64)
+    empty_mfccs = np.empty((mel_spec.shape[1], 0), dtype=np.float64)
     return empty_mfccs
 
   if remove_silence:
     if silence_threshold is None:
       raise ValueError("silence_threshold must be set")
 
-    if not 0 <= silence_threshold:
-      raise ValueError("silence_threshold must be greater than or equal to 0 RMS")
-
     mel_spec = remove_silence_X_kn(mel_spec, silence_threshold)
 
     if mel_spec.shape[0] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, mel-spectrogram is empty")
-      empty_mfccs = np.empty((0, mel_spec.shape[1]), dtype=np.float64)
+      empty_mfccs = np.empty((mel_spec.shape[1], 0), dtype=np.float64)
       return empty_mfccs
 
   MC_X_ik = get_MC_X_ik(mel_spec, mel_spec.shape[1])
@@ -291,6 +300,14 @@ def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optiona
 
 
 def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_spec_B: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+  if len(amp_spec_A.shape) != 2:
+    raise ValueError(
+      f"amplitude spectrogram A must have 2 dimensions but got {len(amp_spec_A.shape)}")
+
+  if len(amp_spec_B.shape) != 2:
+    raise ValueError(
+      f"amplitude spectrogram B must have 2 dimensions but got {len(amp_spec_B.shape)}")
+
   if amp_spec_A.shape[0] == 0:
     logger = getLogger(__name__)
     logger.warning("spectrogram A is empty")
@@ -309,7 +326,7 @@ def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_s
   n_fft_bins = amp_spec_A.shape[1]
 
   if n_fft_bins == 0:
-    raise ValueError("spectrograms have no frequency bins")
+    raise ValueError("spectrograms must have at least 1 frequency bin")
 
   n_fft_samples = ms_to_samples(n_fft, sample_rate)
   if get_n_fft_bins(n_fft_samples) != n_fft_bins:
@@ -396,6 +413,12 @@ def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_s
 
 
 def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+  if not len(mel_spec_A.shape) == 2:
+    raise ValueError(f"mel-spectrogram A must have 2 dimensions but got {len(mel_spec_A.shape)}")
+
+  if not len(mel_spec_B.shape) == 2:
+    raise ValueError(f"mel-spectrogram B must have 2 dimensions but got {len(mel_spec_B.shape)}")
+
   if len(mel_spec_A) == 0:
     logger = getLogger(__name__)
     logger.warning("mel-spectrogram A is empty")
@@ -408,6 +431,10 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
 
   if not mel_spec_A.shape[1] == mel_spec_B.shape[1]:
     raise ValueError("both mel-spectrograms must have the same number of mel-bands")
+  N = mel_spec_A.shape[1]
+
+  if not N > 0:
+    raise ValueError("mel-spectrograms must have at least 1 mel-band")
 
   if aligning not in ["pad", "dtw"]:
     raise ValueError("aligning must be 'pad' or 'dtw'")
@@ -422,7 +449,6 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
     raise ValueError(
         "cannot remove silence from MFCCs after both mel-spectrograms were aligned")
 
-  N = mel_spec_A.shape[1]
   if D > N:
     raise ValueError(f"D must be <= number of mel-bands ({N})")
 
@@ -477,6 +503,12 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
 
 
 def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", remove_silence: bool = False, silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+  if not len(mfccs_A.shape) == 2:
+    raise ValueError(f"MFCCs A must have 2 dimensions but got {len(mfccs_A.shape)}")
+
+  if not len(mfccs_B.shape) == 2:
+    raise ValueError(f"MFCCs B must have 2 dimensions but got {len(mfccs_B.shape)}")
+
   if mfccs_A.shape[1] == 0:
     logger = getLogger(__name__)
     logger.warning("MFCCs A are empty")
@@ -491,6 +523,9 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
     raise ValueError("both MFCCs must have the same number of coefficients")
 
   N = mfccs_A.shape[0]
+
+  if not N > 0:
+    raise ValueError("MFCCs must have at least 1 coefficient")
 
   if D > N:
     raise ValueError(f"D must be <= number of MFCC coefficients ({N})")

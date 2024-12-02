@@ -17,6 +17,39 @@ AUDIO_B = TEST_DIR / "B.wav"
 N = 80
 
 
+def test_zero_dim_return_raises_error():
+  with pytest.raises(ValueError):
+    compare_mfccs(np.zeros((0, N)), get_MC_Y_ik_B())
+
+  with pytest.raises(ValueError):
+    compare_mfccs(get_MC_X_ik_A(), np.zeros((0, N)))
+
+  with pytest.raises(ValueError):
+    compare_mfccs(np.zeros((0, N)), np.zeros((0, N)))
+
+
+def test_one_dim_raises_error():
+  with pytest.raises(ValueError):
+    compare_mfccs(np.zeros((302)), get_MC_Y_ik_B())
+
+  with pytest.raises(ValueError):
+    compare_mfccs(get_MC_X_ik_A(), np.zeros((302)))
+
+  with pytest.raises(ValueError):
+    compare_mfccs(np.zeros((302)), np.zeros((302)))
+
+
+def test_three_dim_raises_error():
+  with pytest.raises(ValueError):
+    compare_mfccs(np.zeros((302, N, 3)), get_MC_Y_ik_B())
+
+  with pytest.raises(ValueError):
+    compare_mfccs(get_MC_X_ik_A(), np.zeros((302, N, 3)))
+
+  with pytest.raises(ValueError):
+    compare_mfccs(np.zeros((302, N, 3)), np.zeros((302, N, 3)))
+
+
 def get_MC_X_ik_A():
   sr1, signalA = wavfile.read(AUDIO_A)
   signalA = norm_audio_signal(signalA)

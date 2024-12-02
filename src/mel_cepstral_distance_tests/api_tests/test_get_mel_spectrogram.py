@@ -16,6 +16,21 @@ N_FFT = samples_to_ms(512, 22050)
 SR = 22050
 
 
+def test_one_dim_raises_error():
+  with pytest.raises(ValueError):
+    get_mel_spectrogram(np.zeros((302)), SR, N_FFT)
+
+
+def test_three_dim_raises_error():
+  with pytest.raises(ValueError):
+    get_mel_spectrogram(np.zeros((302, 353, 3)), SR, N_FFT)
+
+
+def test_no_freq_bins_raises_error():
+  with pytest.raises(ValueError):
+    get_mel_spectrogram(np.zeros((302, 0)), SR, N_FFT)
+
+
 def get_X_km():
   return get_amplitude_spectrogram(AUDIO_A, sample_rate=SR, n_fft=N_FFT, window="hamming", hop_len=16, norm_audio=False, remove_silence=False, win_len=N_FFT)
 

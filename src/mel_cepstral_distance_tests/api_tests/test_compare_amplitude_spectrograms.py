@@ -14,6 +14,42 @@ TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
 AUDIO_A = TEST_DIR / "A.wav"
 AUDIO_B = TEST_DIR / "B.wav"
 
+SR = 22050
+N_FFT = samples_to_ms(512, 22050)
+
+
+def test_zero_dim_spec_raise_error():
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(get_X_km_A(), np.empty((305, 0)), SR, N_FFT)
+
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(np.empty((305, 0)), get_X_km_A(), SR, N_FFT)
+
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(np.empty((305, 0)), np.empty((305, 0)), SR, N_FFT)
+
+
+def test_one_dim_spec_raise_error():
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(get_X_km_A(), np.empty((305)), SR, N_FFT)
+
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(np.empty((305)), get_X_km_A(), SR, N_FFT)
+
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(np.empty((305)), np.empty((305)), SR, N_FFT)
+
+
+def test_three_dim_spec_raise_error():
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(get_X_km_A(), np.empty((305, 20, 10)), SR, N_FFT)
+
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(np.empty((305, 20, 10)), get_X_km_A(), SR, N_FFT)
+
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(np.empty((305, 20, 10)), np.empty((305, 20, 10)), SR, N_FFT)
+
 
 def get_X_km_A():
   sr1, signalA = wavfile.read(AUDIO_A)

@@ -79,7 +79,7 @@ Where:
 ### Mel spectrogram
 
 $$
-X_{k,n} = \log_{10}\left\{\sum_m^M |X(k, m)|^2 \cdot w_n(m)\right\}
+X_{k,n} = \log_{10}\left\lbrace\sum_m^M |X(k, m)|^2 \cdot w_n(m)\right\rbrace
 $$
 
 Where:

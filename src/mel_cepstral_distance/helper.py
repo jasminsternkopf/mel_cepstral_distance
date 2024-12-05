@@ -42,10 +42,10 @@ def norm_audio_signal(audio: npt.NDArray) -> npt.NDArray:
   return audio
 
 
-def get_hz_points(fmin: float, fmax: float, N: int) -> npt.NDArray:
+def get_hz_points(fmin: float, fmax: float, M: int) -> npt.NDArray:
   mel_low = hz_to_mel(fmin)
   mel_high = hz_to_mel(fmax)
-  mel_points = np.linspace(mel_low, mel_high, N + 2)
+  mel_points = np.linspace(mel_low, mel_high, M + 2)
   hz_points = np.array([mel_to_hz(mel_point) for mel_point in mel_points])
   return hz_points
 

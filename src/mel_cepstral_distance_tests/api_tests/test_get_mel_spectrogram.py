@@ -39,7 +39,7 @@ def test_result_changes_after_silence_removal():
   res = get_mel_spectrogram(
     get_X_km(), SR, N_FFT,
     remove_silence=False,
-    fmin=0, fmax=SR // 2, N=20,
+    fmin=0, fmax=SR // 2, M=20,
   )
 
   assert res.shape == (303, 20)
@@ -50,7 +50,7 @@ def test_result_changes_after_silence_removal():
     get_X_km(), SR, N_FFT,
     remove_silence=True,
     silence_threshold=mean,
-    fmax=SR // 2, fmin=0, N=20,
+    fmax=SR // 2, fmin=0, M=20,
   )
 
   assert res.shape == (124, 20)
@@ -94,7 +94,7 @@ def test_removing_silence_from_sig_too_hard_returns_empty():
     get_X_km(), SR, N_FFT,
     remove_silence=True,
     silence_threshold=loudness_max + 1,
-    fmax=SR // 2, fmin=0, N=20,
+    fmax=SR // 2, fmin=0, M=20,
   )
 
   assert res.shape == (0, 20)
@@ -106,7 +106,7 @@ def test_empty_spec_returns_empty():
   res = get_mel_spectrogram(
     empty_spec, SR, N_FFT,
     remove_silence=False,
-    fmax=SR // 2, fmin=0, N=20,
+    fmax=SR // 2, fmin=0, M=20,
   )
 
   assert res.shape == (0, 20)
@@ -146,7 +146,7 @@ def create_outputs():
       get_X_km(), SR, N_FFT,
       fmin=fmin,
       fmax=fmax,
-      N=n,
+      M=n,
       remove_silence=sil_removal is not None,
       silence_threshold=sil_removal,
     )
@@ -164,7 +164,7 @@ def test_outputs():
       get_X_km(), SR, N_FFT,
       fmin=fmin,
       fmax=fmax,
-      N=n,
+      M=n,
       remove_silence=sil_removal is not None,
       silence_threshold=sil_removal,
     )

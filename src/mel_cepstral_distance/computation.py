@@ -48,21 +48,21 @@ def get_X_km(S: npt.NDArray, n_fft: int, win_len: int, hop_length: float, window
   return X_km
 
 
-def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) -> npt.NDArray:
+def get_w_n_m(sample_rate: int, n_fft: int, M: int, fmin: float, fmax: float) -> npt.NDArray:
   ''' calculates a Mel filter bank '''
-  # N: number of mel bands
+  # M: number of mel bands
   assert sample_rate > 0
-  assert N > 0
+  assert M > 0
   assert n_fft > 0
   assert fmax <= sample_rate / 2
   assert fmin < fmax
   assert fmin >= 0
 
-  hz_points = get_hz_points(fmin, fmax, N)
+  hz_points = get_hz_points(fmin, fmax, M)
   bins = np.floor((n_fft + 1) * hz_points / sample_rate).astype(int)
-  w_n_m = np.zeros((N, get_n_fft_bins(n_fft)))
+  w_n_m = np.zeros((M, get_n_fft_bins(n_fft)))
 
-  for n in range(1, N + 1):
+  for n in range(1, M + 1):
     left = bins[n - 1]
     center = bins[n]
     right = bins[n + 1]

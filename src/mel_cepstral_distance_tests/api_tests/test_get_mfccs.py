@@ -20,7 +20,7 @@ def get_X_kn():
   amp_spec = get_amplitude_spectrogram(AUDIO_A, sample_rate=SR, n_fft=N_FFT, window="hamming",
                                        hop_len=16, norm_audio=False, remove_silence=False, win_len=N_FFT)
   mel_spec = get_mel_spectrogram(
-    amp_spec, SR, N_FFT, remove_silence=False, fmax=SR // 2, fmin=0, N=20)
+    amp_spec, SR, N_FFT, remove_silence=False, fmax=SR // 2, fmin=0, M=20)
   return mel_spec
 
 

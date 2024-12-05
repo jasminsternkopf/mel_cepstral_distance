@@ -21,7 +21,7 @@ from mel_cepstral_distance_analysis.helper import (extract_frames_from_signal, p
                                                    plot_X_km, plot_X_kn, stack_images_vertically)
 
 
-def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: 4000, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "spec", silence_threshold_A: float = 0.05, silence_threshold_B: float = 0.05, norm_sig: bool = True, custom_save_dir: Optional[Path] = None) -> None:
+def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: int = 8000, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: 4000, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "spec", silence_threshold_A: float = 0.05, silence_threshold_B: float = 0.05, norm_sig: bool = True, custom_save_dir: Optional[Path] = None) -> None:
   logger = getLogger(__name__)
   start = perf_counter()
 
@@ -245,7 +245,7 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
   step += 1
   print(f"-- ({step}) Calculating Mel-filterbank --")
   # Mel-Bank - Shape: (N, #Frames)
-  w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, fmin, fmax)
+  w_n_m = get_w_n_m(sample_rate, n_fft_samples, M, fmin, fmax)
 
   step += 1
   print(f"-- ({step}) Calculating Mel-spectrograms --")
@@ -373,10 +373,10 @@ def compare_audio_files_extended(audio_A: Path, audio_B: Path, *, sample_rate: i
   step += 1
   print(f"-- ({step}) Calculating Mel Cepstral Coefficients --")
   # Shape: (N, #Frames)
-  MC_X_ik = get_MC_X_ik(X_kn_A, N)
-  MC_Y_ik = get_MC_X_ik(X_kn_B, N)
+  MC_X_ik = get_MC_X_ik(X_kn_A, M)
+  MC_Y_ik = get_MC_X_ik(X_kn_B, M)
 
-  print(f"Calculated {N} MFCCs")
+  print(f"Calculated {M} MFCCs")
   print(f"A -> Min: {MC_X_ik.min()}, Mean: {MC_X_ik.mean()}, Max: {MC_X_ik.max()}")
   print(f"B -> Min: {MC_Y_ik.min()}, Mean: {MC_Y_ik.mean()}, Max: {MC_Y_ik.max()}")
 

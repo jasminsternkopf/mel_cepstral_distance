@@ -97,19 +97,19 @@ def get_amplitude_spectrogram(audio: Path, *, sample_rate: Optional[int] = None,
   return X_km_A
 
 
-def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, N: int = 20, fmin: int = 0, fmax: Optional[int] = None, remove_silence: bool = False, silence_threshold: Optional[float] = None) -> npt.NDArray:
+def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, M: int = 20, fmin: int = 0, fmax: Optional[int] = None, remove_silence: bool = False, silence_threshold: Optional[float] = None) -> npt.NDArray:
   # amp_spec = X_km
 
   if len(amp_spec.shape) != 2:
     raise ValueError(f"amplitude spectrogram must have 2 dimensions but got {len(amp_spec.shape)}")
 
-  if not N > 0:
-    raise ValueError("N must be > 0")
+  if not M > 0:
+    raise ValueError("M must be > 0")
 
   if amp_spec.shape[0] == 0:
     logger = getLogger(__name__)
     logger.warning("spectrogram is empty")
-    empty_mel_spec = np.empty((0, N), dtype=np.float64)
+    empty_mel_spec = np.empty((0, M), dtype=np.float64)
     return empty_mel_spec
 
   if amp_spec.shape[1] == 0:
@@ -144,10 +144,10 @@ def get_mel_spectrogram(amp_spec: npt.NDArray[np.complex128], sample_rate: int, 
     if amp_spec.shape[0] == 0:
       logger = getLogger(__name__)
       logger.warning("after removing silence, spectrogram is empty")
-      empty_mel_spec = np.empty((0, N), dtype=np.float64)
+      empty_mel_spec = np.empty((0, M), dtype=np.float64)
       return empty_mel_spec
 
-  w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, fmin, fmax)
+  w_n_m = get_w_n_m(sample_rate, n_fft_samples, M, fmin, fmax)
   X_kn = get_X_kn(amp_spec, w_n_m)
   return X_kn
 
@@ -181,7 +181,7 @@ def get_mfccs(mel_spec: npt.NDArray, /, *, remove_silence: bool = False, silence
   return MC_X_ik
 
 
-def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
+def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
   """
   - silence is removed before alignment
   - high freq is max sr/2
@@ -293,13 +293,13 @@ def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optiona
   X_km_B = get_X_km(signalB, n_fft_samples, win_len_samples, hop_len_samples, window)
 
   mean_mcd_over_all_k, res_penalty = compare_amplitude_spectrograms(
-    X_km_A, X_km_B, sample_rate, n_fft, fmin=fmin, fmax=fmax, N=N, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
+    X_km_A, X_km_B, sample_rate, n_fft, fmin=fmin, fmax=fmax, M=M, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
   )
 
   return mean_mcd_over_all_k, res_penalty
 
 
-def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_spec_B: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, fmin: int = 0, fmax: Optional[int] = None, N: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_spec_B: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
   if len(amp_spec_A.shape) != 2:
     raise ValueError(
       f"amplitude spectrogram A must have 2 dimensions but got {len(amp_spec_A.shape)}")
@@ -358,8 +358,8 @@ def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_s
   if not 0 <= fmin < fmax:
     raise ValueError(f"fmin must be in [0, fmax), i.e., [0, {fmax})")
 
-  if not N > 0:
-    raise ValueError("N must be > 0")
+  if not M > 0:
+    raise ValueError("M must be > 0")
 
   if remove_silence == "spec":
     if silence_threshold_A is None:
@@ -391,7 +391,7 @@ def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_s
     aligning = "pad"
 
   # Mel-Bank - Shape: (N, #Frames)
-  w_n_m = get_w_n_m(sample_rate, n_fft_samples, N, fmin, fmax)
+  w_n_m = get_w_n_m(sample_rate, n_fft_samples, M, fmin, fmax)
 
   # Mel-Spectrogram - Shape: (#Frames, #N)
   X_kn_A = get_X_kn(amp_spec_A, w_n_m)
@@ -431,9 +431,9 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
 
   if not mel_spec_A.shape[1] == mel_spec_B.shape[1]:
     raise ValueError("both mel-spectrograms must have the same number of mel-bands")
-  N = mel_spec_A.shape[1]
+  M = mel_spec_A.shape[1]
 
-  if not N > 0:
+  if not M > 0:
     raise ValueError("mel-spectrograms must have at least 1 mel-band")
 
   if aligning not in ["pad", "dtw"]:
@@ -449,8 +449,8 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
     raise ValueError(
         "cannot remove silence from MFCCs after both mel-spectrograms were aligned")
 
-  if D > N:
-    raise ValueError(f"D must be <= number of mel-bands ({N})")
+  if D > M:
+    raise ValueError(f"D must be <= number of mel-bands ({M})")
 
   if remove_silence == "mel":
     if silence_threshold_A is None:
@@ -482,8 +482,8 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
     aligning = "pad"
 
   # Shape: (N, #Frames)
-  MC_X_ik = get_MC_X_ik(mel_spec_A, N)
-  MC_Y_ik = get_MC_X_ik(mel_spec_B, N)
+  MC_X_ik = get_MC_X_ik(mel_spec_A, M)
+  MC_Y_ik = get_MC_X_ik(mel_spec_B, M)
 
   remove_silence_mfcc = remove_silence == "mfcc"
 
@@ -522,13 +522,13 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
   if not mfccs_A.shape[0] == mfccs_B.shape[0]:
     raise ValueError("both MFCCs must have the same number of coefficients")
 
-  N = mfccs_A.shape[0]
+  M = mfccs_A.shape[0]
 
-  if not N > 0:
+  if not M > 0:
     raise ValueError("MFCCs must have at least 1 coefficient")
 
-  if D > N:
-    raise ValueError(f"D must be <= number of MFCC coefficients ({N})")
+  if D > M:
+    raise ValueError(f"D must be <= number of MFCC coefficients ({M})")
 
   if not 0 <= s < D:
     raise ValueError("s must be in [0, D)")

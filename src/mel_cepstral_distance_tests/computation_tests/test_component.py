@@ -21,15 +21,15 @@ def test_compontent():
   X_km_1 = get_X_km(S1, n_fft, win_len, hop_length, window)
   X_km_2 = get_X_km(S2, n_fft, win_len, hop_length, window)
   sample_rate = 22050
-  N = 40
+  M = 40
   fmin = 0
   fmax = sample_rate / 2
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
+  w_n_m = get_w_n_m(sample_rate, n_fft, M, fmin, fmax)
   assert w_n_m.shape[1] == X_km_1.shape[1]
   X_kn_1 = get_X_kn(X_km_1, w_n_m)
   X_kn_2 = get_X_kn(X_km_2, w_n_m)
-  MC_X_ik = get_MC_X_ik(X_kn_1, N)
-  MC_Y_ik = get_MC_X_ik(X_kn_2, N)
+  MC_X_ik = get_MC_X_ik(X_kn_1, M)
+  MC_Y_ik = get_MC_X_ik(X_kn_2, M)
   s = 1
   D = 12
   MCD_k = get_MCD_k(MC_X_ik, MC_Y_ik, s, D)
@@ -70,18 +70,18 @@ def test_example_audio_sim():
   window = "hanning"
   X_km_1 = get_X_km(S1, n_fft, win_len, hop_length, window)
   X_km_2 = get_X_km(S2, n_fft, win_len, hop_length, window)
-  N = 40
+  M = 40
   fmin = 0
   fmax = sample_rate / 2
-  w_n_m = get_w_n_m(sample_rate, n_fft, N, fmin, fmax)
+  w_n_m = get_w_n_m(sample_rate, n_fft, M, fmin, fmax)
   # Normieren hat keinen Einfluss auf das Ergebnis
-  w_n_m = norm_w_n_m(w_n_m, "sum", get_hz_points(fmin, fmax, N))
+  w_n_m = norm_w_n_m(w_n_m, "sum", get_hz_points(fmin, fmax, M))
   X_kn_1 = get_X_kn(X_km_1, w_n_m)
   print(X_kn_1.mean())
   X_kn_2 = get_X_kn(X_km_2, w_n_m)
-  MC_X_ik = get_MC_X_ik(X_kn_1, N)
+  MC_X_ik = get_MC_X_ik(X_kn_1, M)
   print(MC_X_ik.mean())
-  MC_Y_ik = get_MC_X_ik(X_kn_2, N)
+  MC_Y_ik = get_MC_X_ik(X_kn_2, M)
   MC_X_ik, MC_Y_ik, pen = align_MC(MC_X_ik, MC_Y_ik, aligning="dtw")
   s = 1
   D = 12

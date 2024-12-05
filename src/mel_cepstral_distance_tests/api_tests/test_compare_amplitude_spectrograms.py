@@ -68,7 +68,7 @@ def test_aligning_with_pad_returns_same_for_spec_mel_mfcc():
   for align_target in ["spec", "mel", "mfcc"]:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(), 22050,
-      samples_to_ms(512, 22050), align_target=align_target, aligning="pad",
+      samples_to_ms(512, 22050), align_target=align_target, aligning="pad", dtw_radius=None,
     )
     res.append((mcd, pen))
   np.testing.assert_almost_equal(res[0], res[1])
@@ -80,13 +80,13 @@ def test_result_changes_after_silence_removal_before_padding_mel():
   mcd, pen = compare_amplitude_spectrograms(
     get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
-    align_target="mel", aligning="pad",
+    align_target="mel", aligning="pad", dtw_radius=None,
     remove_silence="spec", silence_threshold_A=0.01, silence_threshold_B=0.01,
   )
   mcd2, pen2 = compare_amplitude_spectrograms(
     get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
-    align_target="mel", aligning="pad",
+    align_target="mel", aligning="pad", dtw_radius=None,
     remove_silence="no",
   )
 
@@ -100,14 +100,14 @@ def test_result_changes_after_silence_removal_before_padding_mfcc():
       samples_to_ms(512, 22050),
     align_target="mfcc", aligning="pad",
     remove_silence="mel", silence_threshold_A=0.01, silence_threshold_B=0.01,
-    D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
+    D=16, s=1, M=20, fmin=0, fmax=22050 // 2, dtw_radius=None,
   )
   mcd2, pen2 = compare_amplitude_spectrograms(
     get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
     align_target="mfcc", aligning="pad",
     remove_silence="no",
-    D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
+    D=16, s=1, M=20, fmin=0, fmax=22050 // 2, dtw_radius=None,
   )
 
   assert not np.allclose(mcd, mcd2)
@@ -119,7 +119,7 @@ def test_same_spec_returns_zero():
     get_X_km_A(), get_X_km_A(), 22050,
     samples_to_ms(512, 22050),
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
   )
   assert mcd == 0
   assert pen == 0
@@ -131,7 +131,7 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     samples_to_ms(512, 22050),
     remove_silence="spec", silence_threshold_A=100, silence_threshold_B=0,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -141,7 +141,7 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     samples_to_ms(512, 22050),
     remove_silence="spec", silence_threshold_A=0, silence_threshold_B=100,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -151,7 +151,7 @@ def test_removing_silence_from_spec_too_hard_returns_nan_nan():
     samples_to_ms(512, 22050),
     remove_silence="spec", silence_threshold_A=100, silence_threshold_B=100,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -162,7 +162,7 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mel", silence_threshold_A=100, silence_threshold_B=0,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
@@ -172,7 +172,7 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mel", silence_threshold_A=0, silence_threshold_B=100,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
@@ -182,7 +182,7 @@ def test_removing_silence_from_mel_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mel", silence_threshold_A=100, silence_threshold_B=100,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
@@ -204,7 +204,7 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mfcc", silence_threshold_A=0, silence_threshold_B=100,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
@@ -214,7 +214,7 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
     get_X_km_A(), get_X_km_B(), 22050,
     samples_to_ms(512, 22050),
     remove_silence="mfcc", silence_threshold_A=100, silence_threshold_B=100,
-    align_target="mfcc", aligning="pad",
+    align_target="mfcc", aligning="pad", dtw_radius=None,
     D=16, s=1, M=20, fmin=0, fmax=22050 // 2,
   )
   assert np.isnan(mcd)
@@ -235,6 +235,12 @@ def test_no_freq_bins_raises_error():
   X_km = np.empty((123, 0), dtype=np.complex128)
   with pytest.raises(ValueError):
     compare_amplitude_spectrograms(X_km, X_km, 22050, samples_to_ms(512, 22050))
+
+
+def test_invalid_radius_raises_error():
+  with pytest.raises(ValueError):
+    compare_amplitude_spectrograms(get_X_km_A(), get_X_km_B(), 22050,
+                                   samples_to_ms(512, 22050), dtw_radius=0, aligning="dtw")
 
 
 def test_empty_spec_returns_nan_nan():
@@ -359,7 +365,7 @@ def test_removing_silence_after_aligning_raises_error():
       get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
       remove_silence="mel", silence_threshold_A=0.01, silence_threshold_B=0.01,
-      align_target="spec", aligning="dtw",
+      align_target="spec", aligning="dtw", dtw_radius=1,
     )
 
   # mfcc after spec was aligned
@@ -368,7 +374,7 @@ def test_removing_silence_after_aligning_raises_error():
       get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
       remove_silence="mfcc", silence_threshold_A=0.01, silence_threshold_B=0.01,
-      align_target="spec", aligning="dtw",
+      align_target="spec", aligning="dtw", dtw_radius=1,
     )
 
   # mfcc after mel was aligned
@@ -377,7 +383,7 @@ def test_removing_silence_after_aligning_raises_error():
       get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
       remove_silence="mfcc", silence_threshold_A=0.01, silence_threshold_B=0.01,
-      align_target="mel", aligning="dtw",
+      align_target="mel", aligning="dtw", dtw_radius=1,
     )
 
 
@@ -427,19 +433,19 @@ def create_other_outputs():
   # fmax
   for fmax in [None, 8000, 6000, 4000, 2000]:
     targets.append((
-      0, fmax, 80, 1, 13
+      0, fmax, 80, 1, 13, 1
     ))
 
   # fmin
   for fmin in [0, 1000, 2000, 4000]:
     targets.append((
-      fmin, 8000, 80, 1, 13
+      fmin, 8000, 80, 1, 13, 1
     ))
 
   # N
   for n in [20, 40, 60, 80]:
     targets.append((
-      0, 8000, n, 1, 13
+      0, 8000, n, 1, 13, 1
     ))
 
   # s, D
@@ -450,17 +456,24 @@ def create_other_outputs():
       (79, 80),
     ]:
     targets.append((
-      0, 8000, 80, s, d
+      0, 8000, 80, s, d, 1
     ))
 
+  # dtw_radius
+  for r in [1, 2, 3, 5, 10, 20, None]:
+    targets.append((
+      0, 8000, 80, 1, 13, r
+    ))
+
+  # random
   targets.extend([
-    (0, 8000, 1, 0, 1),
-    (0, 8000, 2, 1, 2),
+    (0, 8000, 1, 0, 1, 1),
+    (0, 8000, 2, 1, 2, 1),
   ])
 
   outputs = []
 
-  for fmin, fmax, n, s, d in targets:
+  for fmin, fmax, n, s, d, dtw_radius in targets:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(),
       22050, samples_to_ms(512, 22050),
@@ -471,9 +484,10 @@ def create_other_outputs():
       D=d,
       align_target="mel",
       aligning="dtw",
+      dtw_radius=dtw_radius,
       remove_silence="no",
     )
-    outputs.append((fmin, fmax, n, s, d, mcd, pen))
+    outputs.append((fmin, fmax, n, s, d, dtw_radius, mcd, pen))
 
   for vals in outputs:
     print("\t".join(str(i) for i in vals))
@@ -482,7 +496,7 @@ def create_other_outputs():
 
 def test_other_outputs():
   outputs = pickle.loads((TEST_DIR / "test_compare_amplitude_spectrograms_other.pkl").read_bytes())
-  for fmin, fmax, n, s, d, expected_mcd, expected_pen in outputs:
+  for fmin, fmax, n, s, d, dtw_radius, expected_mcd, expected_pen in outputs:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(), 22050,
       samples_to_ms(512, 22050),
@@ -493,6 +507,7 @@ def test_other_outputs():
       D=d,
       align_target="mel",
       aligning="dtw",
+      dtw_radius=dtw_radius,
       remove_silence="no",
     )
     np.testing.assert_almost_equal(mcd, expected_mcd)
@@ -504,33 +519,42 @@ def create_sil_outputs():
   mel_sil = -7
   mfcc_sil = 0.001
 
+  # pad
   targets = [
-    ("no", None, None, "dtw", "spec"),
-    ("no", None, None, "dtw", "mel"),
-    ("no", None, None, "dtw", "mfcc"),
-    ("no", None, None, "pad", "spec"),
-    ("no", None, None, "pad", "mel"),
-    ("no", None, None, "pad", "mfcc"),
+      ("no", None, None, "pad", "spec", None),
+      ("no", None, None, "pad", "mel", None),
+      ("no", None, None, "pad", "mfcc", None),
 
-    ("spec", spec_sil, spec_sil, "dtw", "spec"),
-    ("spec", spec_sil, spec_sil, "dtw", "mel"),
-    ("spec", spec_sil, spec_sil, "dtw", "mfcc"),
-    ("spec", spec_sil, spec_sil, "pad", "spec"),
-    ("spec", spec_sil, spec_sil, "pad", "mel"),
-    ("spec", spec_sil, spec_sil, "pad", "mfcc"),
+      ("spec", spec_sil, spec_sil, "pad", "spec", None),
+      ("spec", spec_sil, spec_sil, "pad", "mel", None),
+      ("spec", spec_sil, spec_sil, "pad", "mfcc", None),
 
-    ("mel", mel_sil, mel_sil, "dtw", "mel"),
-    ("mel", mel_sil, mel_sil, "dtw", "mfcc"),
-    ("mel", mel_sil, mel_sil, "pad", "mel"),
-    ("mel", mel_sil, mel_sil, "pad", "mfcc"),
+      ("mel", mel_sil, mel_sil, "pad", "mel", None),
+      ("mel", mel_sil, mel_sil, "pad", "mfcc", None),
 
-    ("mfcc", mfcc_sil, mfcc_sil, "dtw", "mfcc"),
-    ("mfcc", mfcc_sil, mfcc_sil, "pad", "mfcc"),
+      ("mfcc", mfcc_sil, mfcc_sil, "pad", "mfcc", None),
   ]
+
+  # dtw
+  for dtw_radius in [1, 20]:
+    targets.extend([
+      ("no", None, None, "dtw", "spec", dtw_radius),
+      ("no", None, None, "dtw", "mel", dtw_radius),
+      ("no", None, None, "dtw", "mfcc", dtw_radius),
+
+      ("spec", spec_sil, spec_sil, "dtw", "spec", dtw_radius),
+      ("spec", spec_sil, spec_sil, "dtw", "mel", dtw_radius),
+      ("spec", spec_sil, spec_sil, "dtw", "mfcc", dtw_radius),
+
+      ("mel", mel_sil, mel_sil, "dtw", "mel", dtw_radius),
+      ("mel", mel_sil, mel_sil, "dtw", "mfcc", dtw_radius),
+
+      ("mfcc", mfcc_sil, mfcc_sil, "dtw", "mfcc", dtw_radius),
+    ])
 
   outputs = []
 
-  for remove_silence, sil_a, sil_b, aligning, target in targets:
+  for remove_silence, sil_a, sil_b, aligning, target, dtw_radius in targets:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(),
       22050, samples_to_ms(512, 22050),
@@ -539,9 +563,9 @@ def create_sil_outputs():
       remove_silence=remove_silence,
       silence_threshold_A=sil_a,
       silence_threshold_B=sil_b,
-      s=1, D=13, M=80,
+      s=1, D=13, M=80, dtw_radius=dtw_radius,
     )
-    outputs.append((remove_silence, sil_a, sil_b, aligning, target, mcd, pen))
+    outputs.append((remove_silence, sil_a, sil_b, aligning, target, dtw_radius, mcd, pen))
   for vals in outputs:
     print("\t".join(str(i) for i in vals))
   (TEST_DIR / "test_compare_amplitude_spectrograms_sil.pkl").write_bytes(pickle.dumps(outputs))
@@ -550,7 +574,7 @@ def create_sil_outputs():
 def test_sil_outputs():
   outputs = pickle.loads(
     (TEST_DIR / "test_compare_amplitude_spectrograms_sil.pkl").read_bytes())
-  for remove_silence, sil_a, sil_b, aligning, target, expected_mcd, expected_pen in outputs:
+  for remove_silence, sil_a, sil_b, aligning, target, dtw_radius, expected_mcd, expected_pen in outputs:
     mcd, pen = compare_amplitude_spectrograms(
       get_X_km_A(), get_X_km_B(),
       22050, samples_to_ms(512, 22050),
@@ -559,7 +583,7 @@ def test_sil_outputs():
       remove_silence=remove_silence,
       silence_threshold_A=sil_a,
       silence_threshold_B=sil_b,
-      s=1, D=13, M=80,
+      s=1, D=13, M=80, dtw_radius=dtw_radius,
     )
     np.testing.assert_almost_equal(mcd, expected_mcd)
     np.testing.assert_almost_equal(pen, expected_pen)

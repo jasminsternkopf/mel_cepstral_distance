@@ -74,7 +74,7 @@ def get_MC_Y_ik_B():
 def test_same_mfccs_returns_zero():
   mcd, pen = compare_mfccs(
     get_MC_X_ik_A(), get_MC_X_ik_A(),
-    D=16, s=1, aligning="pad", remove_silence=False,
+    D=16, s=1, aligning="pad", dtw_radius=None, remove_silence=False,
   )
   assert mcd == 0
   assert pen == 0
@@ -83,7 +83,7 @@ def test_same_mfccs_returns_zero():
 def test_removing_silence_too_hard_returns_nan_nan():
   mcd, pen = compare_mfccs(
     get_MC_X_ik_A(), get_MC_Y_ik_B(), remove_silence=True, silence_threshold_A=100, silence_threshold_B=0,
-    aligning="pad", D=16, s=1,
+    aligning="pad", dtw_radius=None, D=16, s=1,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -91,7 +91,7 @@ def test_removing_silence_too_hard_returns_nan_nan():
   mcd, pen = compare_mfccs(
     get_MC_X_ik_A(), get_MC_Y_ik_B(), remove_silence=True,
     silence_threshold_A=0, silence_threshold_B=100,
-    aligning="pad", D=16, s=1,
+    aligning="pad", dtw_radius=None, D=16, s=1,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -99,7 +99,7 @@ def test_removing_silence_too_hard_returns_nan_nan():
   mcd, pen = compare_mfccs(
     get_MC_X_ik_A(), get_MC_Y_ik_B(), remove_silence=True,
     silence_threshold_A=100, silence_threshold_B=100,
-    aligning="pad", D=16, s=1,
+    aligning="pad", dtw_radius=None, D=16, s=1,
   )
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -181,20 +181,27 @@ def create_other_outputs():
       (79, 80),
     ]:
     targets.append((
-      s, d
+      s, d, 1
+    ))
+
+  # dtw_radius
+  for dtw_radius in [1, 10, 20, None]:
+    targets.append((
+      1, 13, dtw_radius
     ))
 
   outputs = []
 
-  for s, d in targets:
+  for s, d, dtw_radius in targets:
     mcd, pen = compare_mfccs(
       get_MC_X_ik_A(), get_MC_Y_ik_B(),
       s=s,
       D=d,
       aligning="dtw",
+      dtw_radius=dtw_radius,
       remove_silence=False,
     )
-    outputs.append((s, d, mcd, pen))
+    outputs.append((s, d, dtw_radius, mcd, pen))
 
   for vals in outputs:
     print("\t".join(str(i) for i in vals))
@@ -203,12 +210,13 @@ def create_other_outputs():
 
 def test_other_outputs():
   outputs = pickle.loads((TEST_DIR / "test_compare_mfccs_other.pkl").read_bytes())
-  for s, d, expected_mcd, expected_pen in outputs:
+  for s, d, dtw_radius, expected_mcd, expected_pen in outputs:
     mcd, pen = compare_mfccs(
       get_MC_X_ik_A(), get_MC_Y_ik_B(),
       s=s,
       D=d,
       aligning="dtw",
+      dtw_radius=dtw_radius,
       remove_silence=False,
     )
     np.testing.assert_almost_equal(mcd, expected_mcd)
@@ -219,25 +227,31 @@ def create_sil_outputs():
   mfcc_sil = 0.001
 
   targets = [
-    (False, None, None, "dtw"),
-    (False, None, None, "pad"),
+    (False, None, None, "pad", None),
 
-    (True, mfcc_sil, mfcc_sil, "dtw"),
-    (True, mfcc_sil, mfcc_sil, "pad"),
+    (True, mfcc_sil, mfcc_sil, "pad", None),
   ]
+
+  for dtw_radius in [1, 20]:
+    targets.extend([
+      (False, None, None, "dtw", dtw_radius),
+
+      (True, mfcc_sil, mfcc_sil, "dtw", dtw_radius),
+    ])
 
   outputs = []
 
-  for remove_silence, sil_a, sil_b, aligning in targets:
+  for remove_silence, sil_a, sil_b, aligning, dtw_radius in targets:
     mcd, pen = compare_mfccs(
       get_MC_X_ik_A(), get_MC_Y_ik_B(),
       aligning=aligning,
       remove_silence=remove_silence,
       silence_threshold_A=sil_a,
       silence_threshold_B=sil_b,
+      dtw_radius=dtw_radius,
       s=1, D=13,
     )
-    outputs.append((remove_silence, sil_a, sil_b, aligning, mcd, pen))
+    outputs.append((remove_silence, sil_a, sil_b, aligning, dtw_radius, mcd, pen))
   for vals in outputs:
     print("\t".join(str(i) for i in vals))
   (TEST_DIR / "test_compare_mfccs_sil.pkl").write_bytes(pickle.dumps(outputs))
@@ -246,13 +260,14 @@ def create_sil_outputs():
 def test_sil_outputs():
   outputs = pickle.loads(
     (TEST_DIR / "test_compare_mfccs_sil.pkl").read_bytes())
-  for remove_silence, sil_a, sil_b, aligning, expected_mcd, expected_pen in outputs:
+  for remove_silence, sil_a, sil_b, aligning, dtw_radius, expected_mcd, expected_pen in outputs:
     mcd, pen = compare_mfccs(
       get_MC_X_ik_A(), get_MC_Y_ik_B(),
       aligning=aligning,
       remove_silence=remove_silence,
       silence_threshold_A=sil_a,
       silence_threshold_B=sil_b,
+      dtw_radius=dtw_radius,
       s=1, D=13,
     )
     np.testing.assert_almost_equal(mcd, expected_mcd)

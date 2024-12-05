@@ -181,12 +181,13 @@ def get_mfccs(mel_spec: npt.NDArray, /, *, remove_silence: bool = False, silence
   return MC_X_ik
 
 
-def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 8, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
+def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 8, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True, dtw_radius: Optional[int] = 10) -> Tuple[float, float]:
   """
   - silence is removed before alignment
   - high freq is max sr/2
   - n_fft should be equal to win_len
   - n_fft should be a power of 2 in samples
+  - dtw_radius: 1 means fastest but less accurate, None means slowest but most accurate alignment, 10 is a good trade-off
   """
   if remove_silence not in ["no", "sig", "spec", "mel", "mfcc"]:
     raise ValueError("remove_silence must be 'no', 'sig', 'spec', 'mel' or 'mfcc'")
@@ -293,13 +294,13 @@ def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optiona
   X_km_B = get_X_km(signalB, n_fft_samples, win_len_samples, hop_len_samples, window)
 
   mean_mcd_over_all_k, res_penalty = compare_amplitude_spectrograms(
-    X_km_A, X_km_B, sample_rate, n_fft, fmin=fmin, fmax=fmax, M=M, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
+    X_km_A, X_km_B, sample_rate, n_fft, fmin=fmin, fmax=fmax, M=M, s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B, dtw_radius=dtw_radius
   )
 
   return mean_mcd_over_all_k, res_penalty
 
 
-def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_spec_B: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_spec_B: npt.NDArray[np.complex128], sample_rate: int, n_fft: float, /, *, fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "spec", remove_silence: Literal["no", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, dtw_radius: Optional[int] = 10) -> Tuple[float, float]:
   if len(amp_spec_A.shape) != 2:
     raise ValueError(
       f"amplitude spectrogram A must have 2 dimensions but got {len(amp_spec_A.shape)}")
@@ -385,7 +386,9 @@ def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_s
   penalty: float
   aligned_here: bool = False
   if align_target == "spec":
-    amp_spec_A, amp_spec_B, penalty = align_X_km(amp_spec_A, amp_spec_B, aligning)
+    if aligning == "dtw" and dtw_radius is not None and not 1 <= dtw_radius:
+      raise ValueError("dtw_radius must be None or greater than or equal to 1")
+    amp_spec_A, amp_spec_B, penalty = align_X_km(amp_spec_A, amp_spec_B, aligning, dtw_radius)
     aligned_here = True
     align_target = "mel"
     aligning = "pad"
@@ -399,7 +402,8 @@ def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_s
 
   mean_mcd_over_all_k, res_penalty = compare_mel_spectrograms(
     X_kn_A, X_kn_B,
-    s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
+    s=s, D=D, aligning=aligning, align_target=align_target, remove_silence=remove_silence, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B,
+    dtw_radius=dtw_radius
   )
 
   if aligned_here:
@@ -412,7 +416,7 @@ def compare_amplitude_spectrograms(amp_spec_A: npt.NDArray[np.complex128], amp_s
   return mean_mcd_over_all_k, penalty
 
 
-def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["mel", "mfcc"] = "mel", remove_silence: Literal["no", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, dtw_radius: Optional[int] = 10) -> Tuple[float, float]:
   if not len(mel_spec_A.shape) == 2:
     raise ValueError(f"mel-spectrogram A must have 2 dimensions but got {len(mel_spec_A.shape)}")
 
@@ -476,7 +480,9 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
   penalty: float
   aligned_here: bool = False
   if align_target == "mel":
-    mel_spec_A, mel_spec_B, penalty = align_X_kn(mel_spec_A, mel_spec_B, aligning)
+    if aligning == "dtw" and dtw_radius is not None and not 1 <= dtw_radius:
+      raise ValueError("dtw_radius must be None or greater than or equal to 1")
+    mel_spec_A, mel_spec_B, penalty = align_X_kn(mel_spec_A, mel_spec_B, aligning, dtw_radius)
     aligned_here = True
     align_target = "mfcc"
     aligning = "pad"
@@ -489,7 +495,7 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
 
   mean_mcd_over_all_k, res_penalty = compare_mfccs(
     MC_X_ik, MC_Y_ik,
-    s=s, D=D, aligning=aligning, remove_silence=remove_silence_mfcc, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B
+    s=s, D=D, aligning=aligning, remove_silence=remove_silence_mfcc, silence_threshold_A=silence_threshold_A, silence_threshold_B=silence_threshold_B, dtw_radius=dtw_radius
   )
 
   if aligned_here:
@@ -502,7 +508,7 @@ def compare_mel_spectrograms(mel_spec_A: npt.NDArray, mel_spec_B: npt.NDArray, /
   return mean_mcd_over_all_k, penalty
 
 
-def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", remove_silence: bool = False, silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None) -> Tuple[float, float]:
+def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", remove_silence: bool = False, silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, dtw_radius: Optional[int] = 10) -> Tuple[float, float]:
   if not len(mfccs_A.shape) == 2:
     raise ValueError(f"MFCCs A must have 2 dimensions but got {len(mfccs_A.shape)}")
 
@@ -557,7 +563,9 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
       logger.warning("after removing silence, MFCCs B are empty")
       return np.nan, np.nan
 
-  mfccs_A, mfccs_B, penalty = align_MC(mfccs_A, mfccs_B, aligning)
+  if aligning == "dtw" and dtw_radius is not None and not 1 <= dtw_radius:
+    raise ValueError("dtw_radius must be None or greater than or equal to 1")
+  mfccs_A, mfccs_B, penalty = align_MC(mfccs_A, mfccs_B, aligning, dtw_radius)
 
   MCD_k = get_MCD_k(mfccs_A, mfccs_B, s, D)
   mean_mcd_over_all_k = get_average_MCD(MCD_k)

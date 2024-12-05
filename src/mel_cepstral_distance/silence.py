@@ -1,5 +1,4 @@
 
-from logging import getLogger
 
 import numpy as np
 import numpy.typing as npt
@@ -23,15 +22,10 @@ def remove_silence_rms(audio_signal: npt.NDArray, threshold_rms: float, min_sile
     # segment als float
 
     rms_value = np.sqrt(np.mean(segment**2))
-    if np.isnan(rms_value):
-      logger = getLogger(__name__)
-      logger.warning("RMS value is NaN for segment")
-      non_silent_audio.append(segment)
-    else:
-      assert rms_value >= 0
+    assert rms_value >= 0
 
-      if rms_value >= threshold_rms:
-        non_silent_audio.append(segment)
+    if rms_value >= threshold_rms:
+      non_silent_audio.append(segment)
 
     start = end
 

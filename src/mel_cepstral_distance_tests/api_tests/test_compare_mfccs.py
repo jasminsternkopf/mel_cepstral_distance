@@ -14,18 +14,18 @@ TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
 AUDIO_A = TEST_DIR / "A.wav"
 AUDIO_B = TEST_DIR / "B.wav"
 
-N = 80
+M = 80
 
 
 def test_zero_dim_return_raises_error():
   with pytest.raises(ValueError):
-    compare_mfccs(np.zeros((0, N)), get_MC_Y_ik_B())
+    compare_mfccs(np.zeros((0, M)), get_MC_Y_ik_B())
 
   with pytest.raises(ValueError):
-    compare_mfccs(get_MC_X_ik_A(), np.zeros((0, N)))
+    compare_mfccs(get_MC_X_ik_A(), np.zeros((0, M)))
 
   with pytest.raises(ValueError):
-    compare_mfccs(np.zeros((0, N)), np.zeros((0, N)))
+    compare_mfccs(np.zeros((0, M)), np.zeros((0, M)))
 
 
 def test_one_dim_raises_error():
@@ -41,22 +41,22 @@ def test_one_dim_raises_error():
 
 def test_three_dim_raises_error():
   with pytest.raises(ValueError):
-    compare_mfccs(np.zeros((302, N, 3)), get_MC_Y_ik_B())
+    compare_mfccs(np.zeros((302, M, 3)), get_MC_Y_ik_B())
 
   with pytest.raises(ValueError):
-    compare_mfccs(get_MC_X_ik_A(), np.zeros((302, N, 3)))
+    compare_mfccs(get_MC_X_ik_A(), np.zeros((302, M, 3)))
 
   with pytest.raises(ValueError):
-    compare_mfccs(np.zeros((302, N, 3)), np.zeros((302, N, 3)))
+    compare_mfccs(np.zeros((302, M, 3)), np.zeros((302, M, 3)))
 
 
 def get_MC_X_ik_A():
   sr1, signalA = wavfile.read(AUDIO_A)
   signalA = norm_audio_signal(signalA)
   X_km = get_X_km(signalA, 512, 512, 128, "hamming")
-  w_n_m = get_w_n_m(sr1, 512, N, 0, sr1 // 2)
+  w_n_m = get_w_n_m(sr1, 512, M, 0, sr1 // 2)
   X_kn = get_X_kn(X_km, w_n_m)
-  MC_X_ik = get_MC_X_ik(X_kn, N)
+  MC_X_ik = get_MC_X_ik(X_kn, M)
   return MC_X_ik
 
 
@@ -64,9 +64,9 @@ def get_MC_Y_ik_B():
   sr2, signalB = wavfile.read(AUDIO_B)
   signalB = norm_audio_signal(signalB)
   X_km = get_X_km(signalB, 512, 512, 128, "hamming")
-  w_n_m = get_w_n_m(sr2, 512, N, 0, sr2 // 2)
+  w_n_m = get_w_n_m(sr2, 512, M, 0, sr2 // 2)
   X_kn = get_X_kn(X_km, w_n_m)
-  MC_Y_ik = get_MC_X_ik(X_kn, N)
+  MC_Y_ik = get_MC_X_ik(X_kn, M)
 
   return MC_Y_ik
 
@@ -106,7 +106,7 @@ def test_removing_silence_too_hard_returns_nan_nan():
 
 
 def test_empty_returns_nan_nan():
-  MC_empty = np.empty((N, 0))
+  MC_empty = np.empty((M, 0))
   mcd, pen = compare_mfccs(MC_empty, get_MC_Y_ik_B())
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -142,9 +142,9 @@ def test_invalid_silence_threshold_raises_error():
                   silence_threshold_A=0.01, silence_threshold_B=None)
 
 
-def test_D_greater_than_N_raises_error():
+def test_D_greater_than_M_raises_error():
   with pytest.raises(ValueError):
-    compare_mfccs(get_MC_X_ik_A(), get_MC_Y_ik_B(), D=N + 1)
+    compare_mfccs(get_MC_X_ik_A(), get_MC_Y_ik_B(), D=M + 1)
 
 
 def test_invalid_D_raises_error():

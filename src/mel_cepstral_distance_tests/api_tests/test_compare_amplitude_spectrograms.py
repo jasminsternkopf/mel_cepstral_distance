@@ -313,7 +313,7 @@ def test_invalid_silence_threshold_raises_error():
   # A None
   with pytest.raises(ValueError):
     compare_amplitude_spectrograms(get_X_km_A(), get_X_km_B(), 22050,
-                                   samples_to_ms(512, 22050), remove_silence="sil",
+                                   samples_to_ms(512, 22050), remove_silence="sig",
                                    silence_threshold_A=None, silence_threshold_B=0.01)
 
   with pytest.raises(ValueError):
@@ -333,7 +333,7 @@ def test_invalid_silence_threshold_raises_error():
   # B None
   with pytest.raises(ValueError):
     compare_amplitude_spectrograms(get_X_km_A(), get_X_km_B(), 22050,
-                                   samples_to_ms(512, 22050), remove_silence="sil",
+                                   samples_to_ms(512, 22050), remove_silence="sig",
                                    silence_threshold_A=0.01, silence_threshold_B=None)
 
   with pytest.raises(ValueError):
@@ -381,7 +381,7 @@ def test_removing_silence_after_aligning_raises_error():
     )
 
 
-def test_D_greater_than_N_raises_error():
+def test_D_greater_than_M_raises_error():
   with pytest.raises(ValueError):
     compare_amplitude_spectrograms(get_X_km_A(), get_X_km_B(), 22050,
                                    samples_to_ms(512, 22050), M=10, D=11)
@@ -397,7 +397,7 @@ def test_invalid_D_raises_error():
                                    samples_to_ms(512, 22050), D=1)
 
 
-def test_invalid_N_raises_error():
+def test_invalid_M_raises_error():
   with pytest.raises(ValueError):
     compare_amplitude_spectrograms(get_X_km_A(), get_X_km_B(), 22050,
                                    samples_to_ms(512, 22050), M=0)

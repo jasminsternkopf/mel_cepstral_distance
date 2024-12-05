@@ -70,6 +70,7 @@ def align_2d_sequences_using_dtw(seq_1: npt.NDArray, seq_2: npt.NDArray) -> Tupl
     0], "both sequences must have the same number of features (rows)"
   assert seq_1.shape[1] > 0 and seq_2.shape[1] > 0, "both sequences must have at least one frame"
   max_len = max(seq_1.shape[1], seq_2.shape[1])
+  max_len = min(max_len, 5)
   _, path = fastdtw(seq_1.T, seq_2.T, dist=euclidean, radius=max_len)
   path_np = np.array(path)
   stretched_seq_1 = seq_1[:, path_np[:, 0]]
@@ -88,8 +89,7 @@ def get_penalty(former_length_1: int, former_length_2: int, length_after_equalin
 
 
 def fill_with_zeros_2d(array_1: npt.NDArray, array_2: npt.NDArray) -> Tuple[npt.NDArray, npt.NDArray]:
-  if array_1.ndim != 2 or array_2.ndim != 2:
-    raise ValueError("Both input arrays must be 2-dimensional")
+  assert array_1.ndim == array_2.ndim == 2
 
   if array_1.shape[1] == array_2.shape[1]:
     return array_1, array_2

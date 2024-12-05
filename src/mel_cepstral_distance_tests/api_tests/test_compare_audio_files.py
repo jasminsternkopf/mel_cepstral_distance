@@ -344,7 +344,7 @@ def test_invalid_remove_silence_raises_error():
 def test_no_silence_threshold_raises_error():
   # A None
   with pytest.raises(ValueError):
-    compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sil",
+    compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sig",
                         silence_threshold_A=None, silence_threshold_B=0.01)
 
   with pytest.raises(ValueError):
@@ -360,7 +360,7 @@ def test_no_silence_threshold_raises_error():
                         silence_threshold_A=None, silence_threshold_B=0.01)
   # B None
   with pytest.raises(ValueError):
-    compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sil",
+    compare_audio_files(AUDIO_A, AUDIO_B, remove_silence="sig",
                         silence_threshold_A=0.01, silence_threshold_B=None)
 
   with pytest.raises(ValueError):
@@ -532,7 +532,7 @@ def test_removing_silence_after_aligning_raises_error():
     )
 
 
-def test_D_greater_than_N_raises_error():
+def test_D_greater_than_M_raises_error():
   with pytest.raises(ValueError):
     compare_audio_files(AUDIO_A, AUDIO_B, M=10, D=11)
 
@@ -545,7 +545,7 @@ def test_invalid_D_raises_error():
     compare_audio_files(AUDIO_A, AUDIO_B, D=1)
 
 
-def test_invalid_N_raises_error():
+def test_invalid_M_raises_error():
   with pytest.raises(ValueError):
     compare_audio_files(AUDIO_A, AUDIO_B, M=0)
 

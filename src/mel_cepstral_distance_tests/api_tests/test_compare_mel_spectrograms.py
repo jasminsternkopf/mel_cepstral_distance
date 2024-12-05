@@ -14,7 +14,7 @@ TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
 AUDIO_A = TEST_DIR / "A.wav"
 AUDIO_B = TEST_DIR / "B.wav"
 
-N = 80
+M = 80
 
 
 def test_zero_dim_spec_raise_error():
@@ -54,7 +54,7 @@ def get_X_kn_A():
   sr1, signalA = wavfile.read(AUDIO_A)
   signalA = norm_audio_signal(signalA)
   X_km = get_X_km(signalA, 512, 512, 128, "hamming")
-  w_n_m = get_w_n_m(sr1, 512, N, 0, sr1 // 2)
+  w_n_m = get_w_n_m(sr1, 512, M, 0, sr1 // 2)
   X_kn = get_X_kn(X_km, w_n_m)
   return X_kn
 
@@ -63,7 +63,7 @@ def get_X_kn_B():
   sr2, signalB = wavfile.read(AUDIO_B)
   signalB = norm_audio_signal(signalB)
   X_km = get_X_km(signalB, 512, 512, 128, "hamming")
-  w_n_m = get_w_n_m(sr2, 512, N, 0, sr2 // 2)
+  w_n_m = get_w_n_m(sr2, 512, M, 0, sr2 // 2)
   X_kn = get_X_kn(X_km, w_n_m)
   return X_kn
 
@@ -162,7 +162,7 @@ def test_removing_silence_from_mfcc_too_hard_returns_nan_nan():
 
 
 def test_empty_spec_returns_nan_nan():
-  X_km_empty = np.empty((0, N))
+  X_km_empty = np.empty((0, M))
   mcd, pen = compare_mel_spectrograms(X_km_empty, get_X_kn_B())
   assert np.isnan(mcd)
   assert np.isnan(pen)
@@ -225,9 +225,9 @@ def test_removing_silence_after_aligning_raises_error():
     )
 
 
-def test_D_greater_than_N_raises_error():
+def test_D_greater_than_M_raises_error():
   with pytest.raises(ValueError):
-    compare_mel_spectrograms(get_X_kn_A(), get_X_kn_B(), D=N + 1)
+    compare_mel_spectrograms(get_X_kn_A(), get_X_kn_B(), D=M + 1)
 
 
 def test_invalid_D_raises_error():

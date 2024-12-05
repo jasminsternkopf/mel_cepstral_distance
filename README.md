@@ -10,6 +10,36 @@
 
 Python library to compute the Mel-Cepstral Distance (also called Mel-Cepstral Distortion) of two audio signals based on [Mel-Cepstral Distance Measure for Objective Speech Quality Assessment](https://ieeexplore.ieee.org/document/407206) by Robert F. Kubichek.
 
+## ** Note on the new version [2024/12/05] **
+
+The current code repository represents a complete refactoring of the previous codebase, aiming to enhance clarity and alignment with the methodologies described in the original paper.
+
+Key changes include:
+
+- **Removal of CLI**: The command-line interface has been eliminated to streamline the functionality and focus on core features.  
+- **Improved Calculation**: The computation now adheres more closely to the approach outlined in the original research.  
+- **Pause Removal**: Functionality for handling pauses has been introduced.  
+- **Enhanced Literature Review**: A thorough review of relevant literature has been conducted to refine the default parameter values. However, not all necessary details are provided in the referenced papers, which may require further interpretation.  
+- **Reduced Dependencies**: Non-essential dependencies have been removed, including `librosa`, resulting in a more lightweight and focused package.  
+
+For the time being, it is recommended to clone the repository and use `pip install .` for installation rather than relying on the PyPI version. Further updates to the codebase are planned for an upcoming version.
+
+### Test coverage
+
+```txt
+---------- coverage: platform linux, python 3.8.20-final-0 -----------
+Name                                       Stmts   Miss  Cover   Missing
+------------------------------------------------------------------------
+src/mel_cepstral_distance/__init__.py          1      0   100%
+src/mel_cepstral_distance/alignment.py        70      0   100%
+src/mel_cepstral_distance/api.py             365      0   100%
+src/mel_cepstral_distance/computation.py      68      0   100%
+src/mel_cepstral_distance/helper.py           38      0   100%
+src/mel_cepstral_distance/silence.py          56      0   100%
+------------------------------------------------------------------------
+TOTAL                                        598      0   100%
+```
+
 ## Installation
 
 ```sh
@@ -89,8 +119,8 @@ Where:
 - $\alpha$: Optional scaling factor used in some literature, e.g. $\frac{10\sqrt{2}}{\ln 10}$.
   - Note: Kubichek didn't use it, so it has value 1
 - $s$: Parameter to exclude the 0th coefficient (corresponding to energy):
-  - $s = 0$: Includes the 0th dimension
-  - $s = 1$: Excludes the 0th dimension
+  - $s = 0$: Includes the 0th coefficient
+  - $s = 1$: Excludes the 0th coefficient
 
 #### Mean over all frames
 
@@ -119,19 +149,19 @@ Where:
 
 ### Used parameters in literature
 
-| Literature | Sampling Rate | Window Size           | Hop Length           | FFT Size     | Window Function | Num. Mel-Bands ($N$) | Min Frequency | Max Frequency | $s$ | $D$ | Pause | DTW | $\alpha$                      | Smallest MCD | Largest MCD | Citation MCD | Domain  |
-| ---------- | ------------- | --------------------- | -------------------- | ------------ | --------------- | -------------------- | ------------- | ------------- | --- | --- | ----- | --- | ----------------------------- | ------------ | ----------- | ------------ | ------- |
-| [1]        | 8kHz          | 32ms/256              | <16ms/128*           | 32ms/256*    | ?               | 20                   | 0Hz*          | 4kHz*         | 1   | 16  | no    | no  | 1                             | ~0.8         | ~1.05       | original     | generic |
-| [2]        | ?             | ?                     | ?                    | ?            | ?               | 80*                  | 80Hz*         | 12kHz*        | 1   | 13  | yes*  | no  | 1                             | 0.294        | 0.518       | [3]          | TTS     |
-| [3]        | 24kHz*        | ?                     | ?                    | ?            | ?               | 80                   | 80Hz          | 12kHz         | 1   | 13  | yes*  | no  | 1                             | 6.99         | 12.37       | [1]          | TTS     |
-| [4]        | 16kHz*        | 25ms                  | 5ms                  | ?            | ?               | ?                    | 0Hz*          | 8kHz*         | 1   | 24  | yes*  | no  | $\frac{10}{\ln(10)}$          | ~2.5dB       | ~12.5dB     | [5]          | TTS     |
-| [5]        | ?             | 30ms                  | 10ms                 | ?            | Hamming         | ?                    | ?             | ?             | 1   | 10  | yes*  | yes | 1                             | 3.415        | 4.066       | [1]          | TTS     |
-| [6]        | ?             | >10ms*                | 5ms                  | >10ms*       | Gaussian*       | ?                    | ?             | 8kHz*         | 1   | 24  | no    | no  | $\frac{10 \sqrt{2}}{\ln(10)}$ | ~4.75        | ~6          | [7]          | VC      |
-| [7]        | 16kHz         | 40ms*                 | 5ms                  | 64ms/1024    | Gaussian        | ?                    | ?             | 12kHz         | 1   | 40  | yes   | no  | $\frac{10 \sqrt{2}}{\ln(10)}$ | 2.32dB       | 3.53dB      | none         | TTS     |
-| [8]        | 24kHz         | 50ms/1200             | 12.5ms/300           | 2048/~85.3ms | Hann            | 80                   | 80Hz          | 12kHz         | 1   | 13  | yes*  | yes | 1                             | 4.83         | 5.68        | [1]          | TTS     |
-| [9]        | 16kHz         | 64ms/1024             | 16ms/256             | 128ms/2048   | Hann            | 80                   | 125Hz         | 7.6kHz        | 1*  | 16* | yes*  | yes | 1*                            | 10.62        | 14.38       | [1]          | TTS     |
-| [10]       | 16kHz         | ?                     | ?                    | ?            | ?               | ?                    | ?             | ?             | 1   | 16* | yes*  | yes | 1*                            | 8.67         | 19.41       | none         | TTS     |
-| [11]       | 16kHz*        | 64ms* (at 16kHz)/1024 | 16ms* (at 16kHz)/256 | 64ms*/1024*  | Hann*           | 80                   | 0Hz           | 8kHz          | 1   | 60  | yes*  | no  | $\frac{10 \sqrt{2}}{\ln(10)}$ | 5.32dB       | 6.78dB      | [12]         | TTS     |
+| Literature | Sampling Rate | Window Size           | Hop Length           | FFT Size     | Window Function | $M$ | Min Frequency | Max Frequency | $s$ | $D$ | Pause | DTW | $\alpha$                      | Smallest MCD | Largest MCD | Citation MCD | Domain  |
+| ---------- | ------------- | --------------------- | -------------------- | ------------ | --------------- | --- | ------------- | ------------- | --- | --- | ----- | --- | ----------------------------- | ------------ | ----------- | ------------ | ------- |
+| [1]        | 8kHz          | 32ms/256              | <16ms/128*           | 32ms/256*    | ?               | 20  | 0Hz*          | 4kHz*         | 1   | 16  | no    | no  | 1                             | ~0.8         | ~1.05       | original     | generic |
+| [2]        | ?             | ?                     | ?                    | ?            | ?               | 80* | 80Hz*         | 12kHz*        | 1   | 13  | yes*  | no  | 1                             | 0.294        | 0.518       | [3]          | TTS     |
+| [3]        | 24kHz*        | ?                     | ?                    | ?            | ?               | 80  | 80Hz          | 12kHz         | 1   | 13  | yes*  | no  | 1                             | 6.99         | 12.37       | [1]          | TTS     |
+| [4]        | 16kHz*        | 25ms                  | 5ms                  | ?            | ?               | ?   | 0Hz*          | 8kHz*         | 1   | 24  | yes*  | no  | $\frac{10}{\ln(10)}$          | ~2.5dB       | ~12.5dB     | [5]          | TTS     |
+| [5]        | ?             | 30ms                  | 10ms                 | ?            | Hamming         | ?   | ?             | ?             | 1   | 10  | yes*  | yes | 1                             | 3.415        | 4.066       | [1]          | TTS     |
+| [6]        | ?             | >10ms*                | 5ms                  | >10ms*       | Gaussian*       | ?   | ?             | 8kHz*         | 1   | 24  | no    | no  | $\frac{10 \sqrt{2}}{\ln(10)}$ | ~4.75        | ~6          | [7]          | VC      |
+| [7]        | 16kHz         | 40ms*                 | 5ms                  | 64ms/1024    | Gaussian        | ?   | ?             | 12kHz         | 1   | 40  | yes   | no  | $\frac{10 \sqrt{2}}{\ln(10)}$ | 2.32dB       | 3.53dB      | none         | TTS     |
+| [8]        | 24kHz         | 50ms/1200             | 12.5ms/300           | 2048/~85.3ms | Hann            | 80  | 80Hz          | 12kHz         | 1   | 13  | yes*  | yes | 1                             | 4.83         | 5.68        | [1]          | TTS     |
+| [9]        | 16kHz         | 64ms/1024             | 16ms/256             | 128ms/2048   | Hann            | 80  | 125Hz         | 7.6kHz        | 1*  | 16* | yes*  | yes | 1*                            | 10.62        | 14.38       | [1]          | TTS     |
+| [10]       | 16kHz         | ?                     | ?                    | ?            | ?               | ?   | ?             | ?             | 1   | 16* | yes*  | yes | 1*                            | 8.67         | 19.41       | none         | TTS     |
+| [11]       | 16kHz*        | 64ms* (at 16kHz)/1024 | 16ms* (at 16kHz)/256 | 64ms*/1024*  | Hann*           | 80  | 0Hz           | 8kHz          | 1   | 60  | yes*  | no  | $\frac{10 \sqrt{2}}{\ln(10)}$ | 5.32dB       | 6.78dB      | [12]         | TTS     |
 
 *Parameters are not explicitly stated, but were estimated from the information in the literature
   
@@ -154,7 +184,7 @@ Where:
 
 Based on the values in the literature the default parameters were set:
 
-- Hop Length (hop_len): 16ms
+- Hop Length (hop_len): 8ms
   - Note: should be 1/2 or 1/4 of the window size
 - Window Size (win_len): 32ms
 - FFT Size (n_fft): 32ms
@@ -166,11 +196,12 @@ Based on the values in the literature the default parameters were set:
 - Max Frequency (fmax): sampling rate / 2
   - Cannot exceed half the sampling rate.
 - Num. Mel-Bands ($N$): 20
+  - Increasing the number will increase the resulting MCD values.
 - $s$: 1
 - $D$: 16
 - $\alpha$: 1 (alternate values can be applied by multiplying the MCD with a custom factor)
 - Aligning: DTW
-- Align Target (align_target): mfcc
+- Align Target (align_target): MFCC
 - Remove Silence: No
   - Silence should be removed from Mel spectrograms before computing the MCD, with dataset-specific thresholds.
 

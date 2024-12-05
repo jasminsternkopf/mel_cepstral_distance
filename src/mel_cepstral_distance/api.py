@@ -15,7 +15,7 @@ from mel_cepstral_distance.silence import (remove_silence_MC_X_ik, remove_silenc
                                            remove_silence_X_km, remove_silence_X_kn)
 
 
-def get_amplitude_spectrogram(audio: Path, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", norm_audio: bool = True, remove_silence: bool = False, silence_threshold: Optional[float] = None) -> npt.NDArray[np.complex128]:
+def get_amplitude_spectrogram(audio: Path, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 8, window: Literal["hamming", "hanning"] = "hanning", norm_audio: bool = True, remove_silence: bool = False, silence_threshold: Optional[float] = None) -> npt.NDArray[np.complex128]:
   if sample_rate is not None and not 0 < sample_rate:
     raise ValueError("sample_rate must be > 0")
 
@@ -181,7 +181,7 @@ def get_mfccs(mel_spec: npt.NDArray, /, *, remove_silence: bool = False, silence
   return MC_X_ik
 
 
-def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 16, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
+def compare_audio_files(audio_A: Path, audio_B: Path, /, *, sample_rate: Optional[int] = None, n_fft: float = 32, win_len: float = 32, hop_len: float = 8, window: Literal["hamming", "hanning"] = "hanning", fmin: int = 0, fmax: Optional[int] = None, M: int = 20, s: int = 1, D: int = 16, aligning: Literal["pad", "dtw"] = "dtw", align_target: Literal["spec", "mel", "mfcc"] = "mel", remove_silence: Literal["no", "sig", "spec", "mel", "mfcc"] = "no", silence_threshold_A: Optional[float] = None, silence_threshold_B: Optional[float] = None, norm_audio: bool = True) -> Tuple[float, float]:
   """
   - silence is removed before alignment
   - high freq is max sr/2
@@ -533,8 +533,7 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
   if not 0 <= s < D:
     raise ValueError("s must be in [0, D)")
 
-  if D < 1:
-    raise ValueError("D must be >= 1")
+  assert D >= 1
 
   if aligning not in ["pad", "dtw"]:
     raise ValueError("aligning must be 'pad' or 'dtw'")

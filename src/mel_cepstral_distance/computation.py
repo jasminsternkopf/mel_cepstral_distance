@@ -1,4 +1,3 @@
-from logging import getLogger
 from typing import Literal, Tuple
 
 import numpy as np
@@ -36,10 +35,9 @@ def get_X_km(S: npt.NDArray, n_fft: int, win_len: int, hop_length: float, window
 
   if window == "hamming":
     win = np.hamming(adjusted_win_len)
-  elif window == "hanning":
-    win = np.hanning(adjusted_win_len)
   else:
-    assert False, f"Unknown window function '{window}'"
+    assert window == "hanning"
+    win = np.hanning(adjusted_win_len)
 
   # STFT
   X_km = np.fft.rfft(windowed_frames * win, n=n_fft)

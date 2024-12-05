@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from mel_cepstral_distance.api import get_amplitude_spectrogram, get_mel_spectrogram
-from mel_cepstral_distance.helper import samples_to_ms
+from mel_cepstral_distance.helper import get_n_fft_bins, samples_to_ms
 from mel_cepstral_distance.silence import get_loudness_vals_X_km
 
 TEST_DIR = Path("src/mel_cepstral_distance_tests/api_tests")
@@ -68,6 +68,11 @@ def test_n_fft_one_larger_raises_no_error():
   get_mel_spectrogram(get_X_km(), SR, samples_to_ms(512 + 1, 22050))
 
 
+def test_invalid_M_raises_error():
+  with pytest.raises(ValueError):
+    get_mel_spectrogram(get_X_km(), SR, N_FFT, M=0)
+
+
 def test_invalid_fmin_raises_error():
   with pytest.raises(ValueError):
     get_mel_spectrogram(get_X_km(), SR, N_FFT, fmin=-1)
@@ -101,7 +106,7 @@ def test_removing_silence_from_sig_too_hard_returns_empty():
 
 
 def test_empty_spec_returns_empty():
-  empty_spec = np.empty(0, dtype=np.int16)
+  empty_spec = np.empty((0, get_n_fft_bins(512)), dtype=np.int16)
 
   res = get_mel_spectrogram(
     empty_spec, SR, N_FFT,

@@ -73,24 +73,6 @@ def get_w_n_m(sample_rate: int, n_fft: int, N: int, fmin: float, fmax: float) ->
   return w_n_m
 
 
-def norm_w_n_m(w_n_m: npt.NDArray, method: Literal["slaney", "sum"], hz_points: npt.NDArray) -> npt.NDArray:
-  ''' normalizes the Mel filter bank '''
-  assert method in ["slaney", "sum"]
-  N, n_fft = w_n_m.shape
-  if method == "slaney":
-    enorm = 2.0 / (hz_points[2:] - hz_points[:-2])
-    w_n_m *= enorm[:, np.newaxis]
-  elif method == "sum":
-    for n in range(N):
-      sum_w = np.sum(w_n_m[n, :])
-      if sum_w == 0:
-        logger = getLogger(__name__)
-        logger.warning(f"Mel band {n} has no energy")
-      else:
-        w_n_m[n, :] /= sum_w
-  return w_n_m
-
-
 def get_X_kn(X_km: npt.NDArray[np.complex128], w_n_m: npt.NDArray) -> npt.NDArray:
   """
   Calculates the energy mel spectrogram (Bel) of the linear amplitude spectrogram

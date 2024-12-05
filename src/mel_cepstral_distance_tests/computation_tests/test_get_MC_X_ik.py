@@ -25,6 +25,19 @@ def get_MC_X_ik_from_paper(X_kn: np.ndarray, M: int) -> np.ndarray:
   return MC_X_ik
 
 
+def test_result_per_frame_is_same_independent_of_position_of_frame():
+  X_kn_1 = np.array([[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10]])  # 3 frames with 4 mel bands
+  X_kn_2 = np.array([[4, 5, 6, 7], [7, 8, 9, 10], [1, 2, 3, 4]])  # 3 frames with 4 mel bands
+  M = X_kn_1.shape[1]
+
+  result_1 = get_MC_X_ik(X_kn_1, M)
+  result_2 = get_MC_X_ik(X_kn_2, M)
+
+  np.testing.assert_almost_equal(result_1[:, 0], result_2[:, 2])
+  np.testing.assert_almost_equal(result_1[:, 1], result_2[:, 0])
+  np.testing.assert_almost_equal(result_1[:, 2], result_2[:, 1])
+
+
 def test_large_valid_input():
   X_kn = np.random.rand(10, 5)  # Random values for larger input
   M = 5

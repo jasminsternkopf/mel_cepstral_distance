@@ -64,4 +64,4 @@ def energy_to_bel(energy: npt.NDArray) -> npt.NDArray:
   """ 
   Converts energy to bels 
   """
-  return 1 * np.log10(energy + np.finfo(float).eps)
+  return np.log10(energy + np.finfo(float).eps)

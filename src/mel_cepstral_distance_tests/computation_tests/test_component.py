@@ -37,6 +37,23 @@ def test_compontent():
   assert np.allclose(mean_mcd_over_all_k, 6.484722423858316)
 
 
+def norm_w_n_m(w_n_m: npt.NDArray, method: Literal["slaney", "sum"], hz_points: npt.NDArray) -> npt.NDArray:
+  ''' normalizes the Mel filter bank '''
+  assert method in ["slaney", "sum"]
+  N, n_fft = w_n_m.shape
+  if method == "slaney":
+    enorm = 2.0 / (hz_points[2:] - hz_points[:-2])
+    w_n_m *= enorm[:, np.newaxis]
+  elif method == "sum":
+    for n in range(N):
+      sum_w = np.sum(w_n_m[n, :])
+      if sum_w == 0:
+        logger = getLogger(__name__)
+        logger.warning(f"Mel band {n} has no energy")
+      else:
+        w_n_m[n, :] /= sum_w
+  return w_n_m
+
 def test_example_audio_sim():
   SIM_ORIG = Path("examples/similar_audios/original.wav")
   SIM_INF = Path("examples/similar_audios/inferred.wav")

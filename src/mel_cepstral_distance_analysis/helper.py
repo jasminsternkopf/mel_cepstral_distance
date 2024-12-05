@@ -19,23 +19,43 @@ def plot_X_km(X_km: npt.NDArray[np.complex128], sample_rate: int, title: str):
   num_freq_bins = X_km.shape[1]  # Frequency bins
 
   freq_bins = np.linspace(0, sample_rate / 2, num_freq_bins)
-  # time_bins = np.arange(num_time_bins) * (hop_len_samples / sample_rate)
   frame_bins = np.arange(n_frames)
 
   X_km_mag = amp_to_mag(X_km)
   X_km_energy = mag_to_energy(X_km_mag)
   X_km_energy_db = energy_to_bel(X_km_energy) * 10
+  avg_energy_per_frame = np.mean(X_km_energy_db, axis=1)
 
-  # Plotting the spectrogram
-  fig, ax = plt.subplots()
-  cax = ax.pcolormesh(frame_bins, freq_bins, X_km_energy_db.T, shading='auto')
-  fig.colorbar(cax, label='Energy (dB)')
-  ax.set_title(f'Linear Spectrogram - {title}')
-  ax.set_xlabel('Time [frame]')
-  ax.set_ylabel('Frequency [Hz]')
+  fig, ax1 = plt.subplots()
+  ax2 = ax1.twinx()
+
+  cax = ax1.pcolormesh(frame_bins, freq_bins, X_km_energy_db.T, shading='auto')
+  cax2 = ax2.plot(frame_bins, avg_energy_per_frame, color='black',
+                  alpha=1, linewidth=0.6, label='Average Energy')
+  ax2.legend(facecolor='white', framealpha=0.8, loc='upper right')
+  ax2.grid(visible=True, which='major', axis='y', linestyle='--', color="black", alpha=0.5)
+  ax2.set_ylabel("Average Energy [dB]")
+
+  step = 10
+  min_avg = np.min(avg_energy_per_frame)
+  max_avg = np.max(avg_energy_per_frame)
+  rounded_min = np.floor(min_avg / step) * step
+  rounded_max = np.ceil(max_avg / step) * step
+  maj_ticks = np.arange(rounded_min, rounded_max + step, step)
+  min_ticks = np.arange(rounded_min, rounded_max + (step / 2), step / 2)
+  ax2.set_yticks(min_ticks, minor=True)
+  ax2.set_yticks(maj_ticks, minor=False)
+  ax2.set_yticklabels(maj_ticks, minor=False)
+  ax2.set_ylim(min(maj_ticks), max(maj_ticks))
+
+  cbar = fig.colorbar(cax, ax=ax1, pad=0.1)
+  cbar.set_label('Energy [dB]')
+
+  ax1.set_title(f'Linear Spectrogram - {title}')
+  ax1.set_xlabel('Time [frame]')
+  ax1.set_ylabel('Frequency [Hz]')
 
   plt.gcf().set_size_inches(get_plot_width(n_frames), PLOT_HIGHT)
-  fig.tight_layout(pad=0.2)
 
   return fig
 
@@ -52,39 +72,61 @@ def plot_X_kn(X_kn: np.ndarray, fmin: int, fmax: int, title: str):
   n_frames, n_mel_bins = X_kn.shape
 
   time_axis = np.linspace(0, n_frames + 1, n_frames + 1)
-  mel_freqs = get_hz_points(fmin, fmax, n_mel_bins)[1:]
+  time_axis = np.linspace(0, n_frames, n_frames)
+  mel_freqs = get_hz_points(fmin, fmax, n_mel_bins)[1:-1]
 
   # X_kn is in Bel
   X_kn_db = X_kn * 10
+  avg_energy_per_frame = np.mean(X_kn_db, axis=1)
 
   # Plotting the Mel spectrogram
-  fig, ax = plt.subplots()
-  cax = ax.pcolormesh(time_axis, mel_freqs, X_kn_db.T, shading='auto')
-  fig.colorbar(cax, label='Energy (dB)')
+  fig, ax1 = plt.subplots()
+  ax2 = ax1.twinx()
+
+  cax = ax1.pcolormesh(time_axis, mel_freqs, X_kn_db.T, shading='auto')
+
+  cax2 = ax2.plot(time_axis, avg_energy_per_frame, color='black',
+                  alpha=1, linewidth=0.6, label='Average Energy')
+  ax2.legend(facecolor='white', framealpha=0.8, loc='upper right')
+  ax2.grid(visible=True, which='major', axis='y', linestyle='--', color="black", alpha=0.5)
+  ax2.set_ylabel("Average Energy [dB]")
+
+  step = 10
+  min_avg = np.min(avg_energy_per_frame)
+  max_avg = np.max(avg_energy_per_frame)
+  rounded_min = np.floor(min_avg / step) * step
+  rounded_max = np.ceil(max_avg / step) * step
+  maj_ticks = np.arange(rounded_min, rounded_max + step, step)
+  min_ticks = np.arange(rounded_min, rounded_max + (step / 2), step / 2)
+  ax2.set_yticks(min_ticks, minor=True)
+  ax2.set_yticks(maj_ticks, minor=False)
+  ax2.set_yticklabels(maj_ticks, minor=False)
+  ax2.set_ylim(min(maj_ticks), max(maj_ticks))
+
+  cbar = fig.colorbar(cax, ax=ax1, pad=0.12, label='Energy [dB]')
 
   # ticks = np.arange(-100, 0 + 20, 20)
   # color_steps = np.arange(-100, 0 + 0.1, 0.1)
   # fig.colorbar(cax, label='Energy [dB]', ax=axes[0], boundaries=color_steps, ticks=ticks)
 
-  ax.set_title(f'Mel Spectrogram - {title}')
+  ax1.set_title(f'{title}')
   # y achse 1 step
   # plt.yticks(mel_freqs)
   # plt.yscale('log')
-  ax.set_yscale('log')
+  ax1.set_yscale('log')
   ticks = np.geomspace(mel_freqs[0], mel_freqs[-1], num=6, dtype=int)
 
-  ax.set_yticks(mel_freqs, minor=True, labels=[])
-  ax.minorticks_off()
-  ax.set_yticks(
+  ax1.set_yticks(mel_freqs, minor=True, labels=[])
+  ax1.minorticks_off()
+  ax1.set_yticks(
     ticks,
     ticks,
     minor=False,
   )
-  ax.set_xlabel('Time [frame]')
-  ax.set_ylabel('Frequency [Hz]')
+  ax1.set_xlabel('Time [frame]')
+  ax1.set_ylabel('Frequency [Hz]')
 
   plt.gcf().set_size_inches(get_plot_width(n_frames), PLOT_HIGHT)
-  fig.tight_layout(pad=0.2)
 
   return fig
 

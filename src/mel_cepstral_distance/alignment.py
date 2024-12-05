@@ -69,7 +69,8 @@ def align_2d_sequences_using_dtw(seq_1: npt.NDArray, seq_2: npt.NDArray) -> Tupl
   assert seq_1.shape[0] == seq_2.shape[
     0], "both sequences must have the same number of features (rows)"
   assert seq_1.shape[1] > 0 and seq_2.shape[1] > 0, "both sequences must have at least one frame"
-  _, path = fastdtw(seq_1.T, seq_2.T, dist=euclidean)
+  max_len = max(seq_1.shape[1], seq_2.shape[1])
+  _, path = fastdtw(seq_1.T, seq_2.T, dist=euclidean, radius=max_len)
   path_np = np.array(path)
   stretched_seq_1 = seq_1[:, path_np[:, 0]]
   stretched_seq_2 = seq_2[:, path_np[:, 1]]

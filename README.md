@@ -59,7 +59,7 @@ mcd, penalty = compare_audio_files(
 )
 
 print(f'MCD: {mcd:.2f}, Penalty: {penalty:.4f}')
-# MCD: 4.07, Penalty: 0.0066
+# MCD: 4.03, Penalty: 0.0197
 ```
 
 ## Calculation

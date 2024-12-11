@@ -532,7 +532,7 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
 
   if not M > 0:
     raise ValueError("MFCCs must have at least 1 coefficient")
-  
+
   if not D <= M:
     raise ValueError(f"D must be <= number of MFCC coefficients ({M})")
 
@@ -565,6 +565,7 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
 
   if aligning == "dtw" and dtw_radius is not None and not 1 <= dtw_radius:
     raise ValueError("dtw_radius must be None or greater than or equal to 1")
+
   mfccs_A, mfccs_B, penalty = align_MC_s_D(mfccs_A, mfccs_B, s, D, aligning, dtw_radius)
 
   MCD_k = get_MCD_k(mfccs_A, mfccs_B, s, D)

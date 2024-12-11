@@ -21,7 +21,7 @@ def align_X_km(X_km_A: npt.NDArray[np.complex128], X_km_B: npt.NDArray[np.comple
     _, _, paths = align_2d_sequences_using_dtw(
       amp_to_mag(X_km_A).T,
       amp_to_mag(X_km_B).T,
-      custom_radius,      
+      custom_radius,
     )
     X_km_A = X_km_A[paths[:, 0], :]
     X_km_B = X_km_B[paths[:, 1], :]
@@ -48,6 +48,27 @@ def align_MC(MC_X_ik: npt.NDArray, MC_Y_ik: npt.NDArray, aligning: Literal["dtw"
   assert aligning in ["dtw", "pad"]
   MC_X_ik, MC_Y_ik, pen = align_frames_2d(MC_X_ik, MC_Y_ik, aligning, custom_radius)
   return MC_X_ik, MC_Y_ik, pen
+
+
+def align_MC_s_D(MC_X_ik: npt.NDArray, MC_Y_ik: npt.NDArray, s: int, D: int, aligning: Literal["dtw", "pad"], custom_radius: Optional[int]) -> Tuple[npt.NDArray, npt.NDArray, float]:
+  assert MC_X_ik.shape[0] == MC_Y_ik.shape[0]
+  M = MC_X_ik.shape[0]
+  assert 0 <= s < D <= M
+  assert aligning in ["dtw", "pad"]
+  former_len_A = MC_X_ik.shape[1]
+  former_len_B = MC_Y_ik.shape[1]
+  if aligning == "dtw":
+    _, _, paths = align_2d_sequences_using_dtw(MC_X_ik[s:D, :], MC_Y_ik[s:D, :], custom_radius)
+
+    MC_X_ik = MC_X_ik[:, paths[:, 0]]
+    MC_Y_ik = MC_Y_ik[:, paths[:, 1]]
+  else:
+    assert aligning == "pad"
+    MC_X_ik, MC_Y_ik = fill_with_zeros_2d(MC_X_ik, MC_Y_ik)
+
+  assert MC_X_ik.shape[1] == MC_Y_ik.shape[1]
+  penalty = get_penalty(former_len_A, former_len_B, MC_X_ik.shape[1])
+  return MC_X_ik, MC_Y_ik, penalty
 
 
 def align_frames_2d(seq1: npt.NDArray, seq2: npt.NDArray, aligning: Literal["dtw", "pad"], custom_radius: Optional[int]) -> Tuple[npt.NDArray, npt.NDArray, float]:

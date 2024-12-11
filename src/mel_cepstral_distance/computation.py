@@ -109,7 +109,8 @@ def get_MC_X_ik(X_kn: npt.NDArray, M: int) -> npt.NDArray:
 def get_MCD_k(MC_X_ik: npt.NDArray, MC_Y_ik: npt.NDArray, s: int, D: int) -> npt.NDArray:
   """ Calculates the Mel Cepstral Distance (MCD) for each frame """
   assert MC_X_ik.shape == MC_Y_ik.shape
-  assert 0 <= s < D
+  M = MC_X_ik.shape[0]
+  assert 0 <= s < D <= M
   MCD_k: npt.NDArray = np.linalg.norm(MC_X_ik[s:D, :] - MC_Y_ik[s:D, :], axis=0)
   return MCD_k
 

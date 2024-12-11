@@ -6,7 +6,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy.io import wavfile
 
-from mel_cepstral_distance.alignment import align_MC, align_X_km, align_X_kn
+from mel_cepstral_distance.alignment import align_MC_s_D, align_X_km, align_X_kn
 from mel_cepstral_distance.computation import (get_average_MCD, get_MC_X_ik, get_MCD_k, get_w_n_m,
                                                get_X_km, get_X_kn)
 from mel_cepstral_distance.helper import (get_n_fft_bins, ms_to_samples, norm_audio_signal,
@@ -532,8 +532,8 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
 
   if not M > 0:
     raise ValueError("MFCCs must have at least 1 coefficient")
-
-  if D > M:
+  
+  if not D <= M:
     raise ValueError(f"D must be <= number of MFCC coefficients ({M})")
 
   if not 0 <= s < D:
@@ -565,7 +565,7 @@ def compare_mfccs(mfccs_A: npt.NDArray, mfccs_B: npt.NDArray, /, *, s: int = 1, 
 
   if aligning == "dtw" and dtw_radius is not None and not 1 <= dtw_radius:
     raise ValueError("dtw_radius must be None or greater than or equal to 1")
-  mfccs_A, mfccs_B, penalty = align_MC(mfccs_A, mfccs_B, aligning, dtw_radius)
+  mfccs_A, mfccs_B, penalty = align_MC_s_D(mfccs_A, mfccs_B, s, D, aligning, dtw_radius)
 
   MCD_k = get_MCD_k(mfccs_A, mfccs_B, s, D)
   mean_mcd_over_all_k = get_average_MCD(MCD_k)
